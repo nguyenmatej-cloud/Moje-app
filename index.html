@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Moje Todo</title>
+    <title>Zvěřinova úkoly</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,12 +13,19 @@
             <p class="subtitle" id="currentDate"></p>
         </div>
         
+        <div class="tabs">
+            <button class="tab active" data-tab="todos">Úkoly</button>
+            <button class="tab" data-tab="deadlines">Deadlines</button>
+        </div>
+        
         <div class="input-area">
             <input type="text" id="todoInput" placeholder="Nový úkol...">
+            <input type="date" id="todoDate">
             <button id="addBtn">+</button>
         </div>
         
         <ul id="todoList"></ul>
+        <ul id="deadlineList" style="display: none;"></ul>
         
         <div class="calendar" id="calendar"></div>
     </div>
