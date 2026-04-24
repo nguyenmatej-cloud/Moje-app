@@ -27,7 +27,7 @@ body {
 }
 
 .header {
-    margin-bottom: 24px;
+    margin-bottom: 20px;
 }
 
 h1 {
@@ -45,15 +45,43 @@ h1 {
     letter-spacing: 1px;
 }
 
+.tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    background: #1a1a1a;
+    padding: 4px;
+    border-radius: 12px;
+}
+
+.tab {
+    flex: 1;
+    padding: 10px;
+    background: transparent;
+    color: #888;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tab.active {
+    background: #f5c518;
+    color: #1a1a1a;
+}
+
 .input-area {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     margin-bottom: 20px;
+    flex-wrap: wrap;
 }
 
 #todoInput {
     flex: 1;
-    min-width: 0;
+    min-width: 150px;
     padding: 14px 16px;
     background: #1a1a1a;
     border: 1px solid #333;
@@ -69,6 +97,17 @@ h1 {
 
 #todoInput:focus {
     border-color: #f5c518;
+}
+
+#todoDate {
+    padding: 14px 12px;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 12px;
+    font-size: 14px;
+    outline: none;
+    color: #fff;
+    color-scheme: dark;
 }
 
 #addBtn {
@@ -89,14 +128,14 @@ h1 {
     transform: scale(0.95);
 }
 
-#todoList {
+#todoList, #deadlineList {
     list-style: none;
     padding: 0;
     margin: 0 0 24px 0;
     min-height: 100px;
 }
 
-#todoList li {
+#todoList li, #deadlineList li {
     background: #1a1a1a;
     padding: 14px;
     border-radius: 12px;
@@ -107,19 +146,33 @@ h1 {
     border: 1px solid #333;
 }
 
-#todoList li.done span {
+#todoList li.done span, #deadlineList li.done span {
     text-decoration: line-through;
     opacity: 0.4;
 }
 
-#todoList li span {
+#todoList li .content, #deadlineList li .content {
     flex: 1;
-    font-size: 16px;
     word-break: break-word;
-    color: #fff;
 }
 
-#todoList li input[type="checkbox"] {
+#todoList li span, #deadlineList li span {
+    font-size: 16px;
+    color: #fff;
+    display: block;
+}
+
+#deadlineList li .deadline-date {
+    font-size: 12px;
+    color: #f5c518;
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+#todoList li input[type="checkbox"],
+#deadlineList li input[type="checkbox"] {
     width: 22px;
     height: 22px;
     cursor: pointer;
@@ -127,7 +180,8 @@ h1 {
     flex-shrink: 0;
 }
 
-#todoList li button {
+#todoList li button,
+#deadlineList li button {
     background: transparent;
     border: none;
     font-size: 20px;
@@ -195,4 +249,11 @@ h1 {
 
 .calendar-day.active .day-number {
     color: #1a1a1a;
+}
+
+.empty-message {
+    text-align: center;
+    color: #666;
+    padding: 40px 20px;
+    font-size: 14px;
 }
