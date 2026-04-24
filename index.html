@@ -8,17 +8,21 @@
 </head>
 <body>
     <div class="app">
-        <h1>📝 Moje úkoly</h1>
+        <div class="header">
+            <h1>Moje úkoly</h1>
+            <p class="subtitle" id="currentDate"></p>
+        </div>
         
         <div class="input-area">
-            <input type="text" id="todoInput" placeholder="Co je potřeba udělat?">
-            <button id="addBtn">Přidat</button>
+            <input type="text" id="todoInput" placeholder="Nový úkol...">
+            <button id="addBtn">+</button>
         </div>
         
         <ul id="todoList"></ul>
+        
+        <div class="calendar" id="calendar"></div>
     </div>
     
     <script type="module" src="script.js"></script>
 </body>
 </html>
-
