@@ -27,15 +27,14 @@ const months = ['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen',
 const today = new Date();
 currentDateEl.textContent = months[today.getMonth()] + ' ' + today.getFullYear();
 
-// Vytvoření kalendáře - aktuální týden
+// Vytvoření kalendáře - 30 dnů (začíná 3 dny zpátky)
 const dayNames = ['Ne', 'Po', 'Út', 'St', 'Čt', 'Pá', 'So'];
-const currentDay = today.getDay();
-const monday = new Date(today);
-monday.setDate(today.getDate() - (currentDay === 0 ? 6 : currentDay - 1));
+const startDate = new Date(today);
+startDate.setDate(today.getDate() - 3);
 
 for (let i = 0; i < 30; i++) {
-    const date = new Date(monday);
-    date.setDate(monday.getDate() + i);
+    const date = new Date(startDate);
+    date.setDate(startDate.getDate() + i);
     
     const dayEl = document.createElement('div');
     dayEl.className = 'calendar-day';
