@@ -101,4 +101,98 @@ h1 {
     padding: 14px;
     border-radius: 12px;
     margin-bottom: 10px;
-    display​​​​​​​​​​​​​​​​
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid #333;
+}
+
+#todoList li.done span {
+    text-decoration: line-through;
+    opacity: 0.4;
+}
+
+#todoList li span {
+    flex: 1;
+    font-size: 16px;
+    word-break: break-word;
+    color: #fff;
+}
+
+#todoList li input[type="checkbox"] {
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    accent-color: #f5c518;
+    flex-shrink: 0;
+}
+
+#todoList li button {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px 8px;
+    flex-shrink: 0;
+    opacity: 0.6;
+}
+
+.calendar {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    padding-top: 20px;
+    border-top: 1px solid #333;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.calendar::-webkit-scrollbar {
+    display: none;
+}
+
+.calendar-day {
+    flex: 0 0 auto;
+    width: 60px;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 14px;
+    padding: 12px 4px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.calendar-day:active {
+    transform: scale(0.95);
+}
+
+.calendar-day.active {
+    background: #f5c518;
+    border-color: #f5c518;
+}
+
+.calendar-day .day-name {
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.calendar-day.active .day-name {
+    color: #1a1a1a;
+}
+
+.calendar-day .day-number {
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    margin-top: 6px;
+}
+
+.calendar-day.active .day-number {
+    color: #1a1a1a;
+}
