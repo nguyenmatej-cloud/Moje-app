@@ -33,7 +33,7 @@ const currentDay = today.getDay();
 const monday = new Date(today);
 monday.setDate(today.getDate() - (currentDay === 0 ? 6 : currentDay - 1));
 
-for (let i = 0; i < 7; i++) {
+for (let i = 0; i < 30; i++) {
     const date = new Date(monday);
     date.setDate(monday.getDate() + i);
     
