@@ -8,18 +8,22 @@ function addTodo() {
     
     const li = document.createElement('li');
     
-    const span = document.createElement('span');
-    span.textContent = text;
-    span.addEventListener('click', () => {
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.addEventListener('change', () => {
         li.classList.toggle('done');
     });
     
+    const span = document.createElement('span');
+    span.textContent = text;
+    
     const deleteBtn = document.createElement('button');
-    deleteBtn.textContent = 'Smazat';
+    deleteBtn.textContent = '🗑️';
     deleteBtn.addEventListener('click', () => {
         li.remove();
     });
     
+    li.appendChild(checkbox);
     li.appendChild(span);
     li.appendChild(deleteBtn);
     list.appendChild(li);
@@ -31,6 +35,6 @@ addBtn.addEventListener('click', addTodo);
 
 input.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
-        addTodo();​​​​​​​​​​​​​​​​
-
-        
+        addTodo();
+    }
+});
