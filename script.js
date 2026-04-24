@@ -1,4 +1,3 @@
-// Firebase konfigurace
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
@@ -19,6 +18,49 @@ const todosRef = ref(db, 'todos');
 const input = document.getElementById('todoInput');
 const addBtn = document.getElementById('addBtn');
 const list = document.getElementById('todoList');
+const calendar = document.getElementById('calendar');
+const currentDateEl = document.getElementById('currentDate');
+
+// Zobrazení aktuálního měsíce a roku
+const months = ['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 
+                'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'];
+const today = new Date();
+currentDateEl.textContent = months[today.getMonth()] + ' ' + today.getFullYear();
+
+// Vytvoření kalendáře - aktuální týden
+const dayNames = ['Ne', 'Po', 'Út', 'St', 'Čt', 'Pá', 'So'];
+const currentDay = today.getDay();
+const monday = new Date(today);
+monday.setDate(today.getDate() - (currentDay === 0 ? 6 : currentDay - 1));
+
+for (let i = 0; i < 7; i++) {
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + i);
+    
+    const dayEl = document.createElement('div');
+    dayEl.className = 'calendar-day';
+    if (date.toDateString() === today.toDateString()) {
+        dayEl.classList.add('active');
+    }
+    
+    const dayName = document.createElement('div');
+    dayName.className = 'day-name';
+    dayName.textContent = dayNames[date.getDay()];
+    
+    const dayNumber = document.createElement('div');
+    dayNumber.className = 'day-number';
+    dayNumber.textContent = date.getDate();
+    
+    dayEl.appendChild(dayName);
+    dayEl.appendChild(dayNumber);
+    
+    dayEl.addEventListener('click', () => {
+        document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('active'));
+        dayEl.classList.add('active');
+    });
+    
+    calendar.appendChild(dayEl);
+}
 
 function addTodo() {
     const text = input.value.trim();
