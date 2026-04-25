@@ -28,6 +28,7 @@ let selectedDay = null;
 let selectedMonth = null;
 let selectedYear = null;
 let slideDirection = null;
+let searchQuery = '';
 
 const months = ['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen',
     'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'];
@@ -259,6 +260,32 @@ function initApp() {
     document.getElementById('addBtn').addEventListener('click', addTodo);
     document.getElementById('todoInput').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') addTodo();
+    });
+
+    document.getElementById('searchBtn').addEventListener('click', () => {
+        const bar = document.getElementById('searchBar');
+        const open = bar.style.display !== 'none';
+        if (open) {
+            bar.style.display = 'none';
+            document.getElementById('searchInput').value = '';
+            searchQuery = '';
+            renderTodos();
+        } else {
+            bar.style.display = 'flex';
+            document.getElementById('searchInput').focus();
+        }
+    });
+
+    document.getElementById('searchClose').addEventListener('click', () => {
+        document.getElementById('searchBar').style.display = 'none';
+        document.getElementById('searchInput').value = '';
+        searchQuery = '';
+        renderTodos();
+    });
+
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        searchQuery = e.target.value.trim();
+        renderSearch();
     });
 }
 
@@ -500,7 +527,41 @@ function formatDate(dateStr) {
     return date.getDate() + '. ' + (date.getMonth() + 1) + '. ' + date.getFullYear();
 }
 
+function renderSearch() {
+    const results = document.getElementById('searchResults');
+    const mainContent = document.getElementById('mainContent');
+
+    if (!searchQuery) {
+        results.style.display = 'none';
+        mainContent.style.display = '';
+        return;
+    }
+
+    mainContent.style.display = 'none';
+    results.style.display = 'block';
+    results.innerHTML = '';
+
+    const q = searchQuery.toLowerCase();
+    let found = false;
+
+    Object.keys(allTodos).forEach(key => {
+        const todo = allTodos[key];
+        if (!todo.text.toLowerCase().includes(q)) return;
+        results.appendChild(todo.deadline ? createDeadlineItem(key, todo) : createTodoItem(key, todo));
+        found = true;
+    });
+
+    if (!found) {
+        const empty = document.createElement('li');
+        empty.className = 'empty-message';
+        empty.textContent = `Žádné výsledky pro „${searchQuery}"`;
+        results.appendChild(empty);
+    }
+}
+
 function renderTodos() {
+    if (searchQuery) { renderSearch(); return; }
+
     const list = document.getElementById('todoList');
     const deadlineList = document.getElementById('deadlineList');
     list.innerHTML = '';

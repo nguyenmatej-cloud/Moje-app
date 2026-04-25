@@ -23,7 +23,14 @@
         <div class="header">
             <div class="header-top">
                 <h1>Zvěřinova úkoly</h1>
-                <div class="user-info" id="userInfo"></div>
+                <div class="header-actions">
+                    <button class="search-btn" id="searchBtn">🔍</button>
+                    <div class="user-info" id="userInfo"></div>
+                </div>
+            </div>
+            <div class="search-bar" id="searchBar" style="display: none;">
+                <input type="text" id="searchInput" placeholder="Hledat úkoly a deadliny...">
+                <button class="search-close-btn" id="searchClose">✕</button>
             </div>
             <div class="month-nav-area">
                 <button class="month-btn" id="prevMonth">‹</button>
@@ -59,10 +66,11 @@
             <button id="addBtn">+</button>
         </div>
 
-        <div class="main-content">
+        <div class="main-content" id="mainContent">
             <ul id="todoList"></ul>
             <ul id="deadlineList" style="display: none;"></ul>
         </div>
+        <ul id="searchResults" style="display: none;"></ul>
 
         <div class="calendar-wrapper">
             <button class="cal-arrow" id="calLeft">‹</button>
