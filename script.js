@@ -51,7 +51,8 @@ const priorityLabels = {
 };
 
 document.getElementById('loginBtn').addEventListener('click', () => {
-    signInWithPopup(auth, provider).catch(err => alert('Chyba přihlášení: ' + err.message));
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
 });
 
 onAuthStateChanged(auth, async (user) => {
