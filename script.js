@@ -139,14 +139,138 @@ function getDeadlineCounts() {
 
 function renderCalendar() {
     calendar.innerHTML = '';
-    currentDateEl.innerHTML = `${months[currentMonth]} <span class="year-btn" id="yearBtn">${currentYear}</span>`;
+    currentDateEl.innerHTML = `<span class="month-btn-label" id="monthLabel">${months[currentMonth]}</span> <span class="year-btn" id="yearBtn">${currentYear}</span>`;
 
+// Kliknutí na rok - výběr roku
 document.getElementById('yearBtn').addEventListener('click', () => {
-    const yearPicker = document.getElementById('yearPicker');
-    if (yearPicker) {
-        yearPicker.remove();
-        return;
+    const existing = document.getElementById('yearPicker');
+    if (existing) { existing.remove(); return; }
+    document.getElementById('monthGrid')?.remove();
+
+    const picker = document.createElement('div');
+    picker.id = 'yearPicker';
+    picker.className = 'year-picker';
+
+    for (let y = 2024; y <= 2030; y++) {
+        const btn = document.createElement('button');
+        btn.className = 'year-option' + (y === currentYear ? ' active' : '');
+        btn.textContent = y;
+        btn.addEventListener('click', () => {
+            currentYear = y;
+            selectedDay = null;
+            selectedMonth = null;
+            selectedYear = null;
+            picker.remove();
+            renderCalendar();
+            renderTodos();
+        });
+        picker.appendChild(btn);
     }
+
+    currentDateEl.parentElement.appendChild(picker);
+});
+
+// Kliknutí na název měsíce - měsíční mřížka
+document.getElementById('monthLabel').addEventListener('click', () => {
+    const existing = document.getElementById('monthGrid');
+    if (existing) { existing.remove(); return; }
+    document.getElementById('yearPicker')?.remove();
+
+    const grid = document.createElement('div');
+    grid.id = 'monthGrid';
+    grid.className = 'month-grid';
+
+    // Záhlaví dnů
+    const dayNamesRow = document.createElement('div');
+    dayNamesRow.className = 'month-grid-header';
+    ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'].forEach(d => {
+        const cell = document.createElement('div');
+        cell.className = 'month-grid-dayname';
+        cell.textContent = d;
+        dayNamesRow.appendChild(cell);
+    });
+    grid.appendChild(dayNamesRow);
+
+    // Dny v měsíci
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+    const offset = firstDay === 0 ? 6 : firstDay - 1;
+
+    const daysRow = document.createElement('div');
+    daysRow.className = 'month-grid-days';
+
+    // Prázdné buňky před prvním dnem
+    for (let i = 0; i < offset; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'month-grid-day empty';
+        daysRow.appendChild(empty);
+    }
+
+    // Deadliny pro tento měsíc
+    const deadlineCounts = getDeadlineCounts();
+
+    for (let i = 1; i <= daysInMonth; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'month-grid-day';
+
+        const date = new Date(currentYear, currentMonth, i);
+        if (date.toDateString() === today.toDateString()) {
+            cell.classList.add('today');
+        }
+        if (i === selectedDay && currentMonth === selectedMonth && currentYear === selectedYear) {
+            cell.classList.add('active');
+        }
+
+        const num = document.createElement('span');
+        num.textContent = i;
+        cell.appendChild(num);
+
+        // Tečky
+        const counts = deadlineCounts[i];
+        if (counts) {
+            const dots = document.createElement('div');
+            dots.className = 'month-grid-dots';
+
+            const undoneDots = Math.min(counts.undone, 2);
+            for (let d = 0; d < undoneDots; d++) {
+                const dot = document.createElement('span');
+                dot.className = 'month-grid-dot red';
+                dots.appendChild(dot);
+            }
+
+            const doneDots = Math.min(counts.done, 2);
+            for (let d = 0; d < doneDots; d++) {
+                const dot = document.createElement('span');
+                dot.className = 'month-grid-dot green';
+                dots.appendChild(dot);
+            }
+
+            cell.appendChild(dots);
+        }
+
+        cell.addEventListener('click', () => {
+            selectedDay = i;
+            selectedMonth = currentMonth;
+            selectedYear = currentYear;
+            grid.remove();
+
+            tabs.forEach(t => t.classList.remove('active'));
+            document.querySelector('[data-tab="deadlines"]').classList.add('active');
+            activeTab = 'deadlines';
+            list.style.display = 'none';
+            deadlineList.style.display = 'block';
+            dateInput.style.display = 'block';
+
+            renderCalendar();
+            renderTodos();
+        });
+
+        daysRow.appendChild(cell);
+    }
+
+    grid.appendChild(daysRow);
+    currentDateEl.parentElement.parentElement.appendChild(grid);
+});
 
     const picker = document.createElement('div');
     picker.id = 'yearPicker';
