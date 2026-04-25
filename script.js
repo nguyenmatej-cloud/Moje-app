@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, push, onValue, remove, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
@@ -20,6 +20,7 @@ const todosRef = ref(db, 'todos');
 const usersRef = ref(db, 'users');
 
 let currentUser = null;
+let currentNickname = null;
 let allUsers = {};
 let activeTab = 'todos';
 let allTodos = {};
@@ -42,54 +43,122 @@ document.getElementById('loginBtn').addEventListener('click', () => {
 });
 
 // Auth stav
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
     if (user) {
         currentUser = user;
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('mainApp').style.display = 'block';
 
-        // Ulož uživatele do databáze
-        update(ref(db, 'users/' + user.uid), {
+        // Zkontroluj jestli má uživatel přezdívku
+        const userSnap = await get(ref(db, 'users/' + user.uid));
+        const userData = userSnap.val();
+
+        if (!userData || !userData.nickname) {
+            // Zeptej se na přezdívku
+            showNicknameDialog(user);
+        } else {
+            currentNickname = userData.nickname;
+            startApp(user, userData);
+        }
+    } else {
+        currentUser = null;
+        currentNickname = null;
+        document.getElementById('loginScreen').style.display = 'flex';
+        document.getElementById('mainApp').style.display = 'none';
+        document.getElementById('nicknameDialog')?.remove();
+    }
+});
+
+function showNicknameDialog(user) {
+    // Odstraň existující dialog
+    document.getElementById('nicknameDialog')?.remove();
+
+    const dialog = document.createElement('div');
+    dialog.id = 'nicknameDialog';
+    dialog.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.8); display: flex; justify-content: center;
+        align-items: center; z-index: 2000;
+    `;
+
+    dialog.innerHTML = `
+        <div style="background: #1c1c1e; padding: 40px; border-radius: 24px; text-align: center; max-width: 360px; width: 90%; border: 1px solid #2c2c2e;">
+            <img src="${user.photoURL}" style="width: 64px; height: 64px; border-radius: 50%; margin-bottom: 16px;">
+            <h2 style="color: #fff; font-size: 22px; margin-bottom: 8px;">Ahoj! Jak ti máme říkat?</h2>
+            <p style="color: #8e8e93; margin-bottom: 24px; font-size: 15px;">Zadej přezdívku která se bude zobrazovat u úkolů</p>
+            <input id="nicknameInput" type="text" placeholder="Přezdívka..." 
+                style="width: 100%; padding: 14px 16px; background: #2c2c2e; border: 1px solid #3a3a3c; 
+                border-radius: 12px; color: #fff; font-size: 17px; outline: none; margin-bottom: 16px;">
+            <button id="nicknameSubmit" 
+                style="width: 100%; padding: 14px; background: #0a84ff; color: #fff; border: none; 
+                border-radius: 12px; font-size: 17px; font-weight: 600; cursor: pointer;">
+                Potvrdit
+            </button>
+        </div>
+    `;
+
+    document.body.appendChild(dialog);
+
+    const input = dialog.querySelector('#nicknameInput');
+    const submit = dialog.querySelector('#nicknameSubmit');
+
+    input.focus();
+
+    const confirm = async () => {
+        const nickname = input.value.trim();
+        if (!nickname) {
+            input.style.borderColor = '#ff453a';
+            return;
+        }
+
+        currentNickname = nickname;
+
+        await update(ref(db, 'users/' + user.uid), {
             name: user.displayName,
+            nickname: nickname,
             photo: user.photoURL,
             email: user.email
         });
 
-        // Zobraz info o uživateli
-        const userInfo = document.getElementById('userInfo');
-        userInfo.innerHTML = `
-            <img src="${user.photoURL}" alt="${user.displayName}">
-            <span>${user.displayName.split(' ')[0]}</span>
-            <button class="logout-btn" id="logoutBtn">Odhlásit</button>
-        `;
+        dialog.remove();
+        startApp(user, { nickname, photo: user.photoURL });
+    };
 
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            signOut(auth);
-        });
+    submit.addEventListener('click', confirm);
+    input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') confirm();
+    });
+}
 
-        initApp();
-    } else {
-        currentUser = null;
-        document.getElementById('loginScreen').style.display = 'flex';
-        document.getElementById('mainApp').style.display = 'none';
-    }
-});
+function startApp(user, userData) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'block';
+
+    // Zobraz info o uživateli
+    const userInfo = document.getElementById('userInfo');
+    userInfo.innerHTML = `
+        <img src="${userData.photo || user.photoURL}" alt="${currentNickname}">
+        <span>${currentNickname}</span>
+        <button class="logout-btn" id="logoutBtn">Odhlásit</button>
+    `;
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+        signOut(auth);
+    });
+
+    initApp();
+}
 
 function initApp() {
-    // Načti uživatele pro přiřazení
     onValue(usersRef, (snapshot) => {
         allUsers = snapshot.val() || {};
         updateAssignSelect();
     });
 
-    // Načti úkoly
     onValue(todosRef, (snapshot) => {
         allTodos = snapshot.val() || {};
         renderCalendar();
         renderTodos();
     });
 
-    // Záložky
     document.querySelectorAll('.tab').forEach(tab => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -176,7 +245,7 @@ function updateAssignSelect() {
     Object.entries(allUsers).forEach(([uid, user]) => {
         const option = document.createElement('option');
         option.value = uid;
-        option.textContent = user.name.split(' ')[0];
+        option.textContent = user.nickname || user.name.split(' ')[0];
         select.appendChild(option);
     });
 }
@@ -481,7 +550,7 @@ function addTodo() {
     const assignedUid = assignTo.value;
     const assignedUser = assignedUid && allUsers[assignedUid] ? {
         uid: assignedUid,
-        name: allUsers[assignedUid].name,
+        name: allUsers[assignedUid].nickname || allUsers[assignedUid].name,
         photo: allUsers[assignedUid].photo
     } : null;
 
@@ -491,7 +560,7 @@ function addTodo() {
         deadline: date || null,
         createdBy: {
             uid: currentUser.uid,
-            name: currentUser.displayName,
+            name: currentNickname,
             photo: currentUser.photoURL
         },
         assignedTo: assignedUser
@@ -522,12 +591,12 @@ function createTodoItem(key, todo) {
     if (todo.assignedTo) {
         const assigned = document.createElement('div');
         assigned.className = 'assigned-to';
-        assigned.innerHTML = `<img src="${todo.assignedTo.photo}" alt=""> Pro: ${todo.assignedTo.name.split(' ')[0]}`;
+        assigned.innerHTML = `<img src="${todo.assignedTo.photo}" alt=""> Pro: <strong>${todo.assignedTo.name}</strong> · Zadal: ${todo.createdBy?.name || '?'}`;
         content.appendChild(assigned);
     } else if (todo.createdBy) {
         const created = document.createElement('div');
         created.className = 'assigned-to';
-        created.innerHTML = `<img src="${todo.createdBy.photo}" alt=""> ${todo.createdBy.name.split(' ')[0]}`;
+        created.innerHTML = `<img src="${todo.createdBy.photo}" alt=""> Zadal: <strong>${todo.createdBy.name}</strong>`;
         content.appendChild(created);
     }
 
@@ -568,12 +637,12 @@ function createDeadlineItem(key, todo) {
     if (todo.assignedTo) {
         const assigned = document.createElement('div');
         assigned.className = 'assigned-to';
-        assigned.innerHTML = `<img src="${todo.assignedTo.photo}" alt=""> Pro: ${todo.assignedTo.name.split(' ')[0]}`;
+        assigned.innerHTML = `<img src="${todo.assignedTo.photo}" alt=""> Pro: <strong>${todo.assignedTo.name}</strong> · Zadal: ${todo.createdBy?.name || '?'}`;
         content.appendChild(assigned);
     } else if (todo.createdBy) {
         const created = document.createElement('div');
         created.className = 'assigned-to';
-        created.innerHTML = `<img src="${todo.createdBy.photo}" alt=""> ${todo.createdBy.name.split(' ')[0]}`;
+        created.innerHTML = `<img src="${todo.createdBy.photo}" alt=""> Zadal: <strong>${todo.createdBy.name}</strong>`;
         content.appendChild(created);
     }
 
