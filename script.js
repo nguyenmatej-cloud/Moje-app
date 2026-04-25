@@ -137,7 +137,17 @@ function startApp(user, userData) {
     userInfo.innerHTML = `
         <img src="${userData.photo || user.photoURL}" alt="${currentNickname}">
         <span>${currentNickname}</span>
-        <button class="logout-btn" id="logoutBtn">Odhlásit</button>
+        <button class="logout-btn" id="changeNickBtn">✏️ Přezdívka</button>
+<button class="logout-btn" id="logoutBtn">Odhlásit</button>
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+    signOut(auth);
+    document.getElementById('changeNickBtn').addEventListener('click', () => {
+    showNicknameDialog(currentUser);
+});
+
+});
+
     `;
 
     document.getElementById('logoutBtn').addEventListener('click', () => {
