@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, push, onValue, remove, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCMRbYmXpvm1EpbsCqutDu9Dx2bae1MNPM",
@@ -50,11 +50,22 @@ const priorityLabels = {
     low: { label: '🟢 Nízká', color: '#30d158' }
 };
 
+// Login přes redirect
 document.getElementById('loginBtn').addEventListener('click', () => {
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
+    signInWithRedirect(auth, provider);
 });
 
+// Zkontroluj výsledek redirectu
+getRedirectResult(auth).then(async (result) => {
+    if (result && result.user) {
+        // Přihlášení přes redirect bylo úspěšné
+        console.log('Redirect login successful');
+    }
+}).catch(err => {
+    console.error('Redirect error:', err);
+});
+
+// Auth stav
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         currentUser = user;
@@ -446,4 +457,259 @@ function renderCalendar() {
         calendar.appendChild(dayEl);
     }
 
-    setTimeout​​​​​​​​​​​​​​​​
+    setTimeout(() => {
+        const active = calendar.querySelector('.active') || calendar.querySelector('.today');
+        if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }, 100);
+}
+
+function spawnConfetti(x, y) {
+    const colors = ['#0a84ff', '#30d158', '#ff453a', '#ffd60a', '#bf5af2'];
+    for (let i = 0; i < 8; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'confetti-piece';
+        piece.style.left = (x + (Math.random() - 0.5) * 40) + 'px';
+        piece.style.top = y + 'px';
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDelay = (Math.random() * 0.2) + 's';
+        document.body.appendChild(piece);
+        setTimeout(() => piece.remove(), 1000);
+    }
+}
+
+function formatDate(dateStr) {
+    const date = new Date(dateStr + 'T00:00:00');
+    return date.getDate() + '. ' + (date.getMonth() + 1) + '. ' + date.getFullYear();
+}
+
+function renderTodos() {
+    const list = document.getElementById('todoList');
+    const deadlineList = document.getElementById('deadlineList');
+    list.innerHTML = '';
+    deadlineList.innerHTML = '';
+
+    const deadlines = [];
+    const filterByDay = selectedDay !== null;
+    const selectedDateStr = filterByDay
+        ? `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`
+        : null;
+
+    if (activeTab === 'todos') {
+        let found = false;
+        Object.keys(allTodos).forEach(key => {
+            const todo = allTodos[key];
+            if (todo.deadline) return;
+            list.appendChild(createTodoItem(key, todo));
+            found = true;
+        });
+        if (!found) {
+            const empty = document.createElement('li');
+            empty.className = 'empty-message';
+            empty.textContent = 'Žádné úkoly 😊';
+            list.appendChild(empty);
+        }
+    } else {
+        Object.keys(allTodos).forEach(key => {
+            const todo = allTodos[key];
+            if (!todo.deadline) return;
+            if (filterByDay && todo.deadline !== selectedDateStr) return;
+            deadlines.push({ key, ...todo });
+        });
+
+        deadlines.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+
+        if (deadlines.length === 0) {
+            const empty = document.createElement('li');
+            empty.className = 'empty-message';
+            empty.textContent = filterByDay
+                ? `😊 Na ${selectedDay}. ${selectedMonth + 1}. ${selectedYear} nemáte žádné deadliny!`
+                : 'Žádné deadlines 😊';
+            deadlineList.appendChild(empty);
+        } else {
+            deadlines.forEach(todo => deadlineList.appendChild(createDeadlineItem(todo.key, todo)));
+        }
+    }
+}
+
+function addTodo() {
+    const input = document.getElementById('todoInput');
+    const dateInput = document.getElementById('todoDate');
+    const assignTo = document.getElementById('assignTo');
+    const category = document.getElementById('category');
+    const priority = document.getElementById('priority');
+    const addBtn = document.getElementById('addBtn');
+
+    const text = input.value.trim();
+    if (text === '') return;
+
+    const date = dateInput.value;
+    if (activeTab === 'deadlines' && !date) {
+        alert('Prosím vyber datum pro deadline!');
+        return;
+    }
+
+    if (date) {
+        const rect = addBtn.getBoundingClientRect();
+        spawnConfetti(rect.left + rect.width / 2, rect.top);
+    }
+
+    const assignedUid = assignTo.value;
+    const assignedUser = assignedUid && allUsers[assignedUid] ? {
+        uid: assignedUid,
+        name: allUsers[assignedUid].nickname || allUsers[assignedUid].name,
+        photo: allUsers[assignedUid].photo
+    } : null;
+
+    push(todosRef, {
+        text: text,
+        done: false,
+        deadline: date || null,
+        category: category.value || null,
+        priority: priority.value || 'medium',
+        createdBy: {
+            uid: currentUser.uid,
+            name: currentNickname,
+            photo: currentUser.photoURL
+        },
+        assignedTo: assignedUser
+    });
+
+    input.value = '';
+    dateInput.value = '';
+    assignTo.value = '';
+    category.value = '';
+    priority.value = 'medium';
+}
+
+function createTodoItem(key, todo) {
+    const li = document.createElement('li');
+    if (todo.done) li.classList.add('done');
+
+    if (todo.priority && priorityLabels[todo.priority]) {
+        li.style.borderLeft = `4px solid ${priorityLabels[todo.priority].color}`;
+    }
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = todo.done;
+    checkbox.addEventListener('change', () => {
+        update(ref(db, 'todos/' + key), { done: checkbox.checked });
+    });
+
+    const content = document.createElement('div');
+    content.className = 'content';
+
+    const span = document.createElement('span');
+    span.textContent = todo.text;
+    content.appendChild(span);
+
+    const meta = document.createElement('div');
+    meta.className = 'todo-meta';
+    if (todo.category && categoryLabels[todo.category]) {
+        const cat = document.createElement('span');
+        cat.className = 'tag category-tag';
+        cat.textContent = categoryLabels[todo.category];
+        meta.appendChild(cat);
+    }
+    if (todo.priority && priorityLabels[todo.priority]) {
+        const pri = document.createElement('span');
+        pri.className = 'tag priority-tag';
+        pri.style.color = priorityLabels[todo.priority].color;
+        pri.textContent = priorityLabels[todo.priority].label;
+        meta.appendChild(pri);
+    }
+    if (meta.children.length > 0) content.appendChild(meta);
+
+    if (todo.assignedTo) {
+        const assigned = document.createElement('div');
+        assigned.className = 'assigned-to';
+        assigned.innerHTML = `<img src="${todo.assignedTo.photo}" alt=""> Pro: <strong>${todo.assignedTo.name}</strong> · Zadal: ${todo.createdBy?.name || '?'}`;
+        content.appendChild(assigned);
+    } else if (todo.createdBy) {
+        const created = document.createElement('div');
+        created.className = 'assigned-to';
+        created.innerHTML = `<img src="${todo.createdBy.photo}" alt=""> Zadal: <strong>${todo.createdBy.name}</strong>`;
+        content.appendChild(created);
+    }
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = '🗑️';
+    deleteBtn.addEventListener('click', () => {
+        li.classList.add('removing');
+        setTimeout(() => remove(ref(db, 'todos/' + key)), 280);
+    });
+
+    li.appendChild(checkbox);
+    li.appendChild(content);
+    li.appendChild(deleteBtn);
+    return li;
+}
+
+function createDeadlineItem(key, todo) {
+    const li = document.createElement('li');
+    if (todo.done) li.classList.add('done');
+
+    if (todo.priority && priorityLabels[todo.priority]) {
+        li.style.borderLeft = `4px solid ${priorityLabels[todo.priority].color}`;
+    }
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = todo.done;
+    checkbox.addEventListener('change', () => {
+        update(ref(db, 'todos/' + key), { done: checkbox.checked });
+    });
+
+    const content = document.createElement('div');
+    content.className = 'content';
+
+    const span = document.createElement('span');
+    span.textContent = todo.text;
+    content.appendChild(span);
+
+    const dateSpan = document.createElement('div');
+    dateSpan.className = 'deadline-date';
+    dateSpan.textContent = '📅 ' + formatDate(todo.deadline);
+    content.appendChild(dateSpan);
+
+    const meta = document.createElement('div');
+    meta.className = 'todo-meta';
+    if (todo.category && categoryLabels[todo.category]) {
+        const cat = document.createElement('span');
+        cat.className = 'tag category-tag';
+        cat.textContent = categoryLabels[todo.category];
+        meta.appendChild(cat);
+    }
+    if (todo.priority && priorityLabels[todo.priority]) {
+        const pri = document.createElement('span');
+        pri.className = 'tag priority-tag';
+        pri.style.color = priorityLabels[todo.priority].color;
+        pri.textContent = priorityLabels[todo.priority].label;
+        meta.appendChild(pri);
+    }
+    if (meta.children.length > 0) content.appendChild(meta);
+
+    if (todo.assignedTo) {
+        const assigned = document.createElement('div');
+        assigned.className = 'assigned-to';
+        assigned.innerHTML = `<img src="${todo.assignedTo.photo}" alt=""> Pro: <strong>${todo.assignedTo.name}</strong> · Zadal: ${todo.createdBy?.name || '?'}`;
+        content.appendChild(assigned);
+    } else if (todo.createdBy) {
+        const created = document.createElement('div');
+        created.className = 'assigned-to';
+        created.innerHTML = `<img src="${todo.createdBy.photo}" alt=""> Zadal: <strong>${todo.createdBy.name}</strong>`;
+        content.appendChild(created);
+    }
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = '🗑️';
+    deleteBtn.addEventListener('click', () => {
+        li.classList.add('removing');
+        setTimeout(() => remove(ref(db, 'todos/' + key)), 280);
+    });
+
+    li.appendChild(checkbox);
+    li.appendChild(content);
+    li.appendChild(deleteBtn);
+    return li;
+}
