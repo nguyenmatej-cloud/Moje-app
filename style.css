@@ -372,3 +372,27 @@ h1 {
     font-size: 15px;
     list-style: none;
 }
+/* Animace hover */
+.calendar-day {
+    transition: all 0.2s ease;
+}
+
+.calendar-day:hover {
+    transform: scale(1.1);
+    border-color: #0a84ff;
+    z-index: 1;
+}
+
+.cal-arrow:hover {
+    transform: scale(1.15);
+    background: #0a84ff;
+}
+
+.month-btn:hover {
+    transform: scale(1.15);
+    background: #0a84ff;
+}
+
+.tab:hover {
+    color: #fff;
+}
