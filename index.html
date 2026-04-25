@@ -7,9 +7,26 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app">
-        <div class="header">
+
+    <!-- Přihlašovací obrazovka -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-box">
             <h1>Zvěřinova úkoly</h1>
+            <p>Přihlaš se pro přístup k úkolům</p>
+            <button class="google-btn" id="loginBtn">
+                <img src="https://www.google.com/favicon.ico" width="20">
+                Přihlásit se přes Google
+            </button>
+        </div>
+    </div>
+
+    <!-- Hlavní aplikace -->
+    <div class="app" id="mainApp" style="display: none;">
+        <div class="header">
+            <div class="header-top">
+                <h1>Zvěřinova úkoly</h1>
+                <div class="user-info" id="userInfo"></div>
+            </div>
             <div class="month-nav-area">
                 <button class="month-btn" id="prevMonth">‹</button>
                 <span id="currentDate"></span>
@@ -26,6 +43,9 @@
         <div class="input-area">
             <input type="text" id="todoInput" placeholder="Nový úkol...">
             <input type="date" id="todoDate">
+            <select id="assignTo">
+                <option value="">👤 Komu?</option>
+            </select>
             <button id="addBtn">+</button>
         </div>
 
