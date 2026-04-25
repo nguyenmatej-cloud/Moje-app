@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, push, onValue, remove, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCMRbYmXpvm1EpbsCqutDu9Dx2bae1MNPM",
@@ -50,11 +50,39 @@ const priorityLabels = {
     low: { label: '🟢 Nízká', color: '#30d158' }
 };
 
+getRedirectResult(auth).catch((err) => {
+    if (err.code && err.code !== 'auth/no-auth-event') {
+        alert('Chyba přihlášení: ' + err.code + '\n' + err.message);
+    }
+});
+
+function shouldUseRedirect() {
+    const ua = navigator.userAgent;
+    const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(ua);
+    return isSafari || isMobile;
+}
+
 document.getElementById('loginBtn').addEventListener('click', async () => {
+    if (shouldUseRedirect()) {
+        await signInWithRedirect(auth, provider);
+        return;
+    }
     try {
         await signInWithPopup(auth, provider);
     } catch (err) {
-        alert('Chyba přihlášení: ' + err.code + '\n' + err.message);
+        const fallbackCodes = [
+            'auth/popup-blocked',
+            'auth/popup-closed-by-user',
+            'auth/cancelled-popup-request',
+            'auth/operation-not-supported-in-this-environment',
+            'auth/web-storage-unsupported'
+        ];
+        if (fallbackCodes.includes(err.code)) {
+            await signInWithRedirect(auth, provider);
+        } else {
+            alert('Chyba přihlášení: ' + err.code + '\n' + err.message);
+        }
     }
 });
 
