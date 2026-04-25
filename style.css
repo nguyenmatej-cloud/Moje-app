@@ -565,3 +565,108 @@ h1 {
     animation: confettiFall 0.8s ease forwards;
     z-index: 999;
 }
+.month-btn-label {
+    cursor: pointer;
+    color: #fff;
+    font-weight: 700;
+    font-size: 18px;
+    transition: color 0.2s;
+}
+
+.month-btn-label:hover {
+    color: #0a84ff;
+}
+
+.month-grid {
+    background: #1c1c1e;
+    border-radius: 18px;
+    padding: 16px;
+    margin-top: 12px;
+    border: 1px solid #2c2c2e;
+    animation: fadeIn 0.2s ease;
+}
+
+.month-grid-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 8px;
+}
+
+.month-grid-dayname {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #8e8e93;
+    text-transform: uppercase;
+    padding: 4px 0;
+}
+
+.month-grid-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.month-grid-day {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    gap: 2px;
+}
+
+.month-grid-day:hover {
+    background: #2c2c2e;
+    transform: scale(1.1);
+}
+
+.month-grid-day.empty {
+    cursor: default;
+}
+
+.month-grid-day.empty:hover {
+    background: transparent;
+    transform: none;
+}
+
+.month-grid-day.today {
+    background: #2c2c2e;
+    border: 1px solid #30d158;
+}
+
+.month-grid-day.today span {
+    color: #30d158;
+    font-weight: 700;
+}
+
+.month-grid-day.active {
+    background: #0a84ff;
+}
+
+.month-grid-dots {
+    display: flex;
+    gap: 2px;
+    justify-content: center;
+}
+
+.month-grid-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.month-grid-dot.red {
+    background: #ff453a;
+}
+
+.month-grid-dot.green {
+    background: #30d158;
+}
