@@ -50,19 +50,21 @@ const priorityLabels = {
     low: { label: '🟢 Nízká', color: '#30d158' }
 };
 
+// Nejdřív zkontroluj výsledek redirectu
+getRedirectResult(auth).then(async (result) => {
+    if (result && result.user) {
+        console.log('Redirect login successful:', result.user.displayName);
+    }
+}).catch(err => {
+    console.error('Redirect error:', err.code, err.message);
+    if (err.code !== 'auth/no-auth-event') {
+        alert('Chyba přihlášení: ' + err.code + ' - ' + err.message);
+    }
+});
+
 // Login přes redirect
 document.getElementById('loginBtn').addEventListener('click', () => {
     signInWithRedirect(auth, provider);
-});
-
-// Zkontroluj výsledek redirectu
-getRedirectResult(auth).then(async (result) => {
-    if (result && result.user) {
-        // Přihlášení přes redirect bylo úspěšné
-        console.log('Redirect login successful');
-    }
-}).catch(err => {
-    console.error('Redirect error:', err);
 });
 
 // Auth stav
