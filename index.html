@@ -10,26 +10,34 @@
     <div class="app">
         <div class="header">
             <h1>Zvěřinova úkoly</h1>
-            <p class="subtitle" id="currentDate"></p>
+            <div class="month-nav-area">
+                <button class="month-btn" id="prevMonth">‹</button>
+                <span id="currentDate"></span>
+                <button class="month-btn" id="nextMonth">›</button>
+            </div>
         </div>
-        
+
         <div class="tabs">
             <button class="tab active" data-tab="todos">Úkoly</button>
             <button class="tab" data-tab="deadlines">Deadlines</button>
         </div>
-        
+
         <div class="input-area">
             <input type="text" id="todoInput" placeholder="Nový úkol...">
             <input type="date" id="todoDate">
             <button id="addBtn">+</button>
         </div>
-        
+
         <ul id="todoList"></ul>
         <ul id="deadlineList" style="display: none;"></ul>
-        
-        <div class="calendar" id="calendar"></div>
+
+        <div class="calendar-wrapper">
+            <button class="cal-arrow" id="calLeft">‹</button>
+            <div class="calendar" id="calendar"></div>
+            <button class="cal-arrow" id="calRight">›</button>
+        </div>
     </div>
-    
+
     <script type="module" src="script.js"></script>
 </body>
 </html>
