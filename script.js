@@ -95,7 +95,7 @@ calRight.addEventListener('click', () => {
     calendar.scrollBy({ left: 130, behavior: 'smooth' });
 });
 
-// Spočítej deadliny pro každý den
+// Spočítej deadliny pro každý den – zvlášť splněné a nesplněné
 function getDeadlineCounts() {
     const counts = {};
     Object.values(allTodos).forEach(todo => {
@@ -103,7 +103,12 @@ function getDeadlineCounts() {
             const d = new Date(todo.deadline + 'T00:00:00');
             if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
                 const day = d.getDate();
-                counts[day] = (counts[day] || 0) + 1;
+                if (!counts[day]) counts[day] = { done: 0, undone: 0 };
+                if (todo.done) {
+                    counts[day].done++;
+                } else {
+                    counts[day].undone++;
+                }
             }
         }
     });
@@ -143,17 +148,28 @@ function renderCalendar() {
         dayEl.appendChild(dayName);
         dayEl.appendChild(dayNumber);
 
-        // Červené tečky
-        const count = deadlineCounts[i] || 0;
-        if (count > 0) {
+        // Tečky – červené (nesplněné) a zelené (splněné)
+        const counts = deadlineCounts[i];
+        if (counts) {
             const dotsEl = document.createElement('div');
             dotsEl.className = 'deadline-dots';
-            const maxDots = Math.min(count, 3);
-            for (let d = 0; d < maxDots; d++) {
+
+            // Červené tečky (nesplněné) – max 3
+            const undoneDots = Math.min(counts.undone, 3);
+            for (let d = 0; d < undoneDots; d++) {
                 const dot = document.createElement('span');
-                dot.className = 'deadline-dot';
+                dot.className = 'deadline-dot red';
                 dotsEl.appendChild(dot);
             }
+
+            // Zelené tečky (splněné) – max 3
+            const doneDots = Math.min(counts.done, 3);
+            for (let d = 0; d < doneDots; d++) {
+                const dot = document.createElement('span');
+                dot.className = 'deadline-dot green';
+                dotsEl.appendChild(dot);
+            }
+
             dayEl.appendChild(dotsEl);
         }
 
@@ -208,7 +224,7 @@ function renderTodos() {
     if (activeTab === 'todos') {
         let found = false;
 
-        if (data) {
+        if (data && !filterByDay) {
             Object.keys(data).forEach(key => {
                 const todo = data[key];
                 if (todo.deadline) return;
@@ -217,7 +233,13 @@ function renderTodos() {
             });
         }
 
-        if (!found) {
+        if (filterByDay) {
+            const dateFormatted = selectedDay + '. ' + (selectedMonth + 1) + '. ' + selectedYear;
+            const empty = document.createElement('li');
+            empty.className = 'empty-message';
+            empty.textContent = '😊 Na ' + dateFormatted + ' nemáte žádné úkoly!';
+            list.appendChild(empty);
+        } else if (!found) {
             const empty = document.createElement('li');
             empty.className = 'empty-message';
             empty.textContent = 'Žádné úkoly';
