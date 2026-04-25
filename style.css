@@ -36,6 +36,51 @@ h1 {
     letter-spacing: -1.5px;
     margin-bottom: 12px;
 }
+.year-btn {
+    cursor: pointer;
+    color: #0a84ff;
+    text-decoration: underline;
+    font-weight: 700;
+}
+
+.year-btn:hover {
+    color: #30d158;
+}
+
+.year-picker {
+    position: absolute;
+    background: #2c2c2e;
+    border-radius: 14px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 100;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    margin-top: 8px;
+}
+
+.year-option {
+    background: transparent;
+    color: #fff;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+}
+
+.year-option:hover {
+    background: #3a3a3c;
+}
+
+.year-option.active {
+    background: #0a84ff;
+    color: #fff;
+}
 
 .month-nav-area {
     display: flex;
