@@ -139,7 +139,37 @@ function getDeadlineCounts() {
 
 function renderCalendar() {
     calendar.innerHTML = '';
-    currentDateEl.textContent = months[currentMonth] + ' ' + currentYear;
+    currentDateEl.innerHTML = `${months[currentMonth]} <span class="year-btn" id="yearBtn">${currentYear}</span>`;
+
+document.getElementById('yearBtn').addEventListener('click', () => {
+    const yearPicker = document.getElementById('yearPicker');
+    if (yearPicker) {
+        yearPicker.remove();
+        return;
+    }
+
+    const picker = document.createElement('div');
+    picker.id = 'yearPicker';
+    picker.className = 'year-picker';
+
+    for (let y = 2024; y <= 2030; y++) {
+        const btn = document.createElement('button');
+        btn.className = 'year-option' + (y === currentYear ? ' active' : '');
+        btn.textContent = y;
+        btn.addEventListener('click', () => {
+            currentYear = y;
+            selectedDay = null;
+            selectedMonth = null;
+            selectedYear = null;
+            picker.remove();
+            renderCalendar();
+            renderTodos();
+        });
+        picker.appendChild(btn);
+    }
+
+    currentDateEl.appendChild(picker);
+});
 
     if (slideDirection === 'left') {
         calendar.classList.remove('slide-left', 'slide-right');
