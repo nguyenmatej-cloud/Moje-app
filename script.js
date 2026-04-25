@@ -29,6 +29,11 @@ const prevMonthBtn = document.getElementById('prevMonth');
 const nextMonthBtn = document.getElementById('nextMonth');
 
 let activeTab = 'todos';
+let allTodos = {};
+let selectedDay = null;
+let selectedMonth = null;
+let selectedYear = null;
+
 const months = ['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen',
     'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'];
 const dayNames = ['Ne', 'Po', 'Út', 'St', 'Čt', 'Pá', 'So'];
@@ -36,7 +41,6 @@ const today = new Date();
 
 let currentMonth = today.getMonth();
 let currentYear = today.getFullYear();
-let selectedDay = today.getDate();
 
 // Záložky
 tabs.forEach(tab => {
@@ -54,6 +58,8 @@ tabs.forEach(tab => {
             deadlineList.style.display = 'block';
             dateInput.style.display = 'block';
         }
+
+        renderTodos();
     });
 });
 
@@ -64,17 +70,23 @@ prevMonthBtn.addEventListener('click', () => {
     currentMonth--;
     if (currentMonth < 0) { currentMonth = 11; currentYear--; }
     selectedDay = null;
+    selectedMonth = null;
+    selectedYear = null;
     renderCalendar();
+    renderTodos();
 });
 
 nextMonthBtn.addEventListener('click', () => {
     currentMonth++;
     if (currentMonth > 11) { currentMonth = 0; currentYear++; }
     selectedDay = null;
+    selectedMonth = null;
+    selectedYear = null;
     renderCalendar();
+    renderTodos();
 });
 
-// Šipky pro scrollování kalendáře
+// Šipky scrollování
 calLeft.addEventListener('click', () => {
     calendar.scrollBy({ left: -130, behavior: 'smooth' });
 });
@@ -83,12 +95,28 @@ calRight.addEventListener('click', () => {
     calendar.scrollBy({ left: 130, behavior: 'smooth' });
 });
 
+// Spočítej deadliny pro každý den v měsíci
+function getDeadlineCounts() {
+    const counts = {};
+    Object.values(allTodos).forEach(todo => {
+        if (todo.deadline) {
+            const d = new Date(todo.deadline + 'T00:00:00');
+            if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
+                const day = d.getDate();
+                counts[day] = (counts[day] || 0) + 1;
+            }
+        }
+    });
+    return counts;
+}
+
 // Vykreslení kalendáře
 function renderCalendar() {
     calendar.innerHTML = '';
     currentDateEl.textContent = months[currentMonth] + ' ' + currentYear;
 
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const deadlineCounts = getDeadlineCounts();
 
     for (let i = 1; i <= daysInMonth; i++) {
         const date = new Date(currentYear, currentMonth, i);
@@ -100,7 +128,7 @@ function renderCalendar() {
             dayEl.classList.add('today');
         }
 
-        if (i === selectedDay) {
+        if (i === selectedDay && currentMonth === selectedMonth && currentYear === selectedYear) {
             dayEl.classList.add('active');
         }
 
@@ -115,16 +143,32 @@ function renderCalendar() {
         dayEl.appendChild(dayName);
         dayEl.appendChild(dayNumber);
 
+        // Červené tečky pro deadliny
+        const count = deadlineCounts[i] || 0;
+        if (count > 0) {
+            const dotsEl = document.createElement('div');
+            dotsEl.className = 'deadline-dots';
+            const maxDots = Math.min(count, 3); // max 3 tečky
+            for (let d = 0; d < maxDots; d++) {
+                const dot = document.createElement('span');
+                dot.className = 'deadline-dot';
+                dotsEl.appendChild(dot);
+            }
+            dayEl.appendChild(dotsEl);
+        }
+
         dayEl.addEventListener('click', () => {
             selectedDay = i;
+            selectedMonth = currentMonth;
+            selectedYear = currentYear;
             document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('active'));
             dayEl.classList.add('active');
+            renderTodos();
         });
 
         calendar.appendChild(dayEl);
     }
 
-    // Scrollni na dnešní nebo vybraný den
     setTimeout(() => {
         const active = calendar.querySelector('.active, .today');
         if (active) {
@@ -137,6 +181,72 @@ function renderCalendar() {
 function formatDate(dateStr) {
     const date = new Date(dateStr + 'T00:00:00');
     return date.getDate() + '. ' + (date.getMonth() + 1) + '. ' + date.getFullYear();
+}
+
+// Vykreslení úkolů
+function renderTodos() {
+    list.innerHTML = '';
+    deadlineList.innerHTML = '';
+
+    const data = allTodos;
+    const deadlines = [];
+
+    const filterByDay = selectedDay !== null;
+    const selectedDateStr = filterByDay
+        ? `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`
+        : null;
+
+    if (activeTab === 'todos') {
+        let found = false;
+
+        if (data && !filterByDay) {
+            Object.keys(data).forEach(key => {
+                const todo = data[key];
+                if (todo.deadline) return;
+                list.appendChild(createTodoItem(key, todo));
+                found = true;
+            });
+        }
+
+        if (filterByDay) {
+            const dateFormatted = selectedDay + '. ' + (selectedMonth + 1) + '. ' + selectedYear;
+            const empty = document.createElement('li');
+            empty.className = 'empty-message';
+            empty.textContent = '😊 Na ' + dateFormatted + ' nemáte žádné úkoly!';
+            list.appendChild(empty);
+        } else if (!found) {
+            const empty = document.createElement('li');
+            empty.className = 'empty-message';
+            empty.textContent = 'Žádné úkoly';
+            list.appendChild(empty);
+        }
+
+    } else {
+        if (data) {
+            Object.keys(data).forEach(key => {
+                const todo = data[key];
+                if (!todo.deadline) return;
+                if (filterByDay && todo.deadline !== selectedDateStr) return;
+                deadlines.push({ key, ...todo });
+            });
+        }
+
+        deadlines.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+
+        if (deadlines.length === 0) {
+            const empty = document.createElement('li');
+            empty.className = 'empty-message';
+            if (filterByDay) {
+                const dateFormatted = selectedDay + '. ' + (selectedMonth + 1) + '. ' + selectedYear;
+                empty.textContent = '😊 Na ' + dateFormatted + ' nemáte žádné deadliny!';
+            } else {
+                empty.textContent = 'Žádné deadlines';
+            }
+            deadlineList.appendChild(empty);
+        } else {
+            deadlines.forEach(todo => deadlineList.appendChild(createDeadlineItem(todo.key, todo)));
+        }
+    }
 }
 
 // Přidání úkolu
@@ -161,40 +271,11 @@ function addTodo() {
     dateInput.value = '';
 }
 
-// Načtení úkolů z Firebase
+// Načtení z Firebase
 onValue(todosRef, (snapshot) => {
-    list.innerHTML = '';
-    deadlineList.innerHTML = '';
-
-    const data = snapshot.val();
-    const deadlines = [];
-
-    if (data) {
-        Object.keys(data).forEach(key => {
-            const todo = data[key];
-            if (todo.deadline) {
-                deadlines.push({ key, ...todo });
-            } else {
-                list.appendChild(createTodoItem(key, todo));
-            }
-        });
-
-        deadlines.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
-
-        if (deadlines.length === 0) {
-            const empty = document.createElement('li');
-            empty.className = 'empty-message';
-            empty.textContent = 'Žádné deadlines';
-            deadlineList.appendChild(empty);
-        } else {
-            deadlines.forEach(todo => deadlineList.appendChild(createDeadlineItem(todo.key, todo)));
-        }
-    } else {
-        const empty = document.createElement('li');
-        empty.className = 'empty-message';
-        empty.textContent = 'Žádné úkoly';
-        list.appendChild(empty);
-    }
+    allTodos = snapshot.val() || {};
+    renderCalendar();
+    renderTodos();
 });
 
 function createTodoItem(key, todo) {
@@ -260,5 +341,4 @@ input.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') addTodo();
 });
 
-// Spustit
 renderCalendar();
