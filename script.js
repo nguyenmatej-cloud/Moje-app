@@ -44,14 +44,11 @@ const today = new Date();
 let currentMonth = today.getMonth();
 let currentYear = today.getFullYear();
 
-// Záložky - reset výběru dne → zobrazí vše
 tabs.forEach(tab => {
     tab.addEventListener('click', () => {
         tabs.forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
         activeTab = tab.dataset.tab;
-
-        // Reset výběru dne
         selectedDay = null;
         selectedMonth = null;
         selectedYear = null;
@@ -66,12 +63,6 @@ tabs.forEach(tab => {
             dateInput.style.display = 'block';
         }
 
-        // Fade in animace
-        const activeList = activeTab === 'todos' ? list : deadlineList;
-        activeList.style.animation = 'none';
-        activeList.offsetHeight;
-        activeList.style.animation = 'fadeIn 0.3s ease';
-
         renderCalendar();
         renderTodos();
     });
@@ -79,7 +70,6 @@ tabs.forEach(tab => {
 
 dateInput.style.display = 'none';
 
-// Tlačítko Dnes
 todayBtn.addEventListener('click', () => {
     currentMonth = today.getMonth();
     currentYear = today.getFullYear();
@@ -87,7 +77,6 @@ todayBtn.addEventListener('click', () => {
     selectedMonth = today.getMonth();
     selectedYear = today.getFullYear();
 
-    // Přepni na Deadlines
     tabs.forEach(t => t.classList.remove('active'));
     document.querySelector('[data-tab="deadlines"]').classList.add('active');
     activeTab = 'deadlines';
@@ -99,7 +88,6 @@ todayBtn.addEventListener('click', () => {
     renderTodos();
 });
 
-// Navigace měsíce
 prevMonthBtn.addEventListener('click', () => {
     slideDirection = 'right';
     currentMonth--;
@@ -122,7 +110,6 @@ nextMonthBtn.addEventListener('click', () => {
     renderTodos();
 });
 
-// Šipky scrollování
 calLeft.addEventListener('click', () => {
     calendar.scrollBy({ left: -150, behavior: 'smooth' });
 });
@@ -131,7 +118,6 @@ calRight.addEventListener('click', () => {
     calendar.scrollBy({ left: 150, behavior: 'smooth' });
 });
 
-// Spočítej deadliny pro každý den
 function getDeadlineCounts() {
     const counts = {};
     Object.values(allTodos).forEach(todo => {
@@ -151,12 +137,10 @@ function getDeadlineCounts() {
     return counts;
 }
 
-// Vykreslení kalendáře
 function renderCalendar() {
     calendar.innerHTML = '';
     currentDateEl.textContent = months[currentMonth] + ' ' + currentYear;
 
-    // Slide animace
     if (slideDirection === 'left') {
         calendar.classList.remove('slide-left', 'slide-right');
         calendar.offsetHeight;
@@ -173,14 +157,12 @@ function renderCalendar() {
 
     for (let i = 1; i <= daysInMonth; i++) {
         const date = new Date(currentYear, currentMonth, i);
-
         const dayEl = document.createElement('div');
         dayEl.className = 'calendar-day';
 
         if (date.toDateString() === today.toDateString()) {
             dayEl.classList.add('today');
         }
-
         if (i === selectedDay && currentMonth === selectedMonth && currentYear === selectedYear) {
             dayEl.classList.add('active');
         }
@@ -196,26 +178,22 @@ function renderCalendar() {
         dayEl.appendChild(dayName);
         dayEl.appendChild(dayNumber);
 
-        // Tečky
         const counts = deadlineCounts[i];
         if (counts) {
             const dotsEl = document.createElement('div');
             dotsEl.className = 'deadline-dots';
-
             const undoneDots = Math.min(counts.undone, 3);
             for (let d = 0; d < undoneDots; d++) {
                 const dot = document.createElement('span');
                 dot.className = 'deadline-dot red';
                 dotsEl.appendChild(dot);
             }
-
             const doneDots = Math.min(counts.done, 3);
             for (let d = 0; d < doneDots; d++) {
                 const dot = document.createElement('span');
                 dot.className = 'deadline-dot green';
                 dotsEl.appendChild(dot);
             }
-
             dayEl.appendChild(dotsEl);
         }
 
@@ -225,22 +203,18 @@ function renderCalendar() {
             selectedYear = currentYear;
             document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('active'));
             dayEl.classList.add('active');
-
-            // Přepni na Deadlines
             tabs.forEach(t => t.classList.remove('active'));
             document.querySelector('[data-tab="deadlines"]').classList.add('active');
             activeTab = 'deadlines';
             list.style.display = 'none';
             deadlineList.style.display = 'block';
             dateInput.style.display = 'block';
-
             renderTodos();
         });
 
         calendar.appendChild(dayEl);
     }
 
-    // Scrollni na aktivní nebo dnešní den
     setTimeout(() => {
         const active = calendar.querySelector('.active') || calendar.querySelector('.today');
         if (active) {
@@ -248,8 +222,6 @@ function renderCalendar() {
         }
     }, 100);
 }
-
-// Konfety animace
 function spawnConfetti(x, y) {
     const colors = ['#0a84ff', '#30d158', '#ff453a', '#ffd60a', '#bf5af2'];
     for (let i = 0; i < 8; i++) {
@@ -264,13 +236,11 @@ function spawnConfetti(x, y) {
     }
 }
 
-// Formátování data
 function formatDate(dateStr) {
     const date = new Date(dateStr + 'T00:00:00');
     return date.getDate() + '. ' + (date.getMonth() + 1) + '. ' + date.getFullYear();
 }
 
-// Vykreslení úkolů
 function renderTodos() {
     list.innerHTML = '';
     deadlineList.innerHTML = '';
@@ -330,7 +300,6 @@ function renderTodos() {
     }
 }
 
-// Přidání úkolu
 function addTodo() {
     const text = input.value.trim();
     if (text === '') return;
@@ -342,7 +311,6 @@ function addTodo() {
         return;
     }
 
-    // Konfety při přidání deadlinu
     if (date) {
         const rect = addBtn.getBoundingClientRect();
         spawnConfetti(rect.left + rect.width / 2, rect.top);
@@ -358,7 +326,6 @@ function addTodo() {
     dateInput.value = '';
 }
 
-// Načtení z Firebase
 onValue(todosRef, (snapshot) => {
     allTodos = snapshot.val() || {};
     renderCalendar();
