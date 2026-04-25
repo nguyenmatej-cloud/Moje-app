@@ -52,11 +52,11 @@ const priorityLabels = {
 
 getRedirectResult(auth).catch((err) => {
     if (err.code && err.code !== 'auth/no-auth-event') {
-        alert('Chyba přihlášení: ' + err.code + '\n' + err.message);
+        console.warn('getRedirectResult:', err.code);
     }
 });
 
-function shouldUseRedirect() {
+function isMobileOrSafari() {
     const ua = navigator.userAgent;
     const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
     const isMobile = /iPhone|iPad|iPod|Android/i.test(ua);
@@ -64,23 +64,20 @@ function shouldUseRedirect() {
 }
 
 document.getElementById('loginBtn').addEventListener('click', async () => {
-    if (shouldUseRedirect()) {
-        await signInWithRedirect(auth, provider);
-        return;
-    }
     try {
+        if (isMobileOrSafari()) {
+            await signInWithRedirect(auth, provider);
+            return;
+        }
         await signInWithPopup(auth, provider);
     } catch (err) {
-        const fallbackCodes = [
-            'auth/popup-blocked',
-            'auth/popup-closed-by-user',
-            'auth/cancelled-popup-request',
-            'auth/operation-not-supported-in-this-environment',
-            'auth/web-storage-unsupported'
-        ];
-        if (fallbackCodes.includes(err.code)) {
-            await signInWithRedirect(auth, provider);
-        } else {
+        if (err.code === 'auth/popup-blocked' || err.code === 'auth/operation-not-supported-in-this-environment') {
+            try {
+                await signInWithRedirect(auth, provider);
+            } catch (redirectErr) {
+                alert('Chyba přihlášení: ' + redirectErr.code + '\n' + redirectErr.message);
+            }
+        } else if (err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
             alert('Chyba přihlášení: ' + err.code + '\n' + err.message);
         }
     }
