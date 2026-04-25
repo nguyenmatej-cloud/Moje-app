@@ -41,6 +41,7 @@ h1 {
     display: flex;
     align-items: center;
     gap: 14px;
+    flex-wrap: wrap;
 }
 
 .month-btn {
@@ -55,12 +56,38 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.15s;
+    transition: all 0.2s ease;
+}
+
+.month-btn:hover {
+    transform: scale(1.15);
+    background: #0a84ff;
 }
 
 .month-btn:active {
+    transform: scale(0.95);
+}
+
+.today-btn {
     background: #0a84ff;
     color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: -0.2px;
+}
+
+.today-btn:hover {
+    transform: scale(1.05);
+    background: #0070d8;
+}
+
+.today-btn:active {
+    transform: scale(0.95);
 }
 
 #currentDate {
@@ -68,6 +95,7 @@ h1 {
     font-weight: 600;
     color: #ebebf5cc;
     letter-spacing: 0.2px;
+    min-width: 130px;
 }
 
 .tabs {
@@ -90,7 +118,11 @@ h1 {
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
+}
+
+.tab:hover {
+    color: #fff;
 }
 
 .tab.active {
@@ -114,6 +146,7 @@ h1 {
     font-size: 17px;
     outline: none;
     color: #fff;
+    transition: border-color 0.2s ease;
 }
 
 #todoInput::placeholder {
@@ -133,6 +166,11 @@ h1 {
     outline: none;
     color: #fff;
     color-scheme: dark;
+    transition: border-color 0.2s ease;
+}
+
+#todoDate:focus {
+    border-color: #0a84ff;
 }
 
 #addBtn {
@@ -146,15 +184,69 @@ h1 {
     cursor: pointer;
     font-weight: 300;
     flex-shrink: 0;
-    transition: all 0.15s;
+    transition: all 0.2s ease;
+}
+
+#addBtn:hover {
+    transform: scale(1.08);
+    background: #0070d8;
 }
 
 #addBtn:active {
-    background: #0070d8;
-    transform: scale(0.95);
+    transform: scale(0.92);
 }
 
-/* Layout na PC - dva sloupce */
+/* Animace přidání úkolu */
+@keyframes bounceIn {
+    0% { opacity: 0; transform: scale(0.8) translateY(-10px); }
+    60% { transform: scale(1.05) translateY(2px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Animace smazání úkolu */
+@keyframes slideOut {
+    0% { opacity: 1; transform: translateX(0); max-height: 100px; margin-bottom: 10px; }
+    100% { opacity: 0; transform: translateX(60px); max-height: 0; margin-bottom: 0; padding: 0; }
+}
+
+/* Animace přepnutí záložky */
+@keyframes fadeIn {
+    0% { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Animace tečky */
+@keyframes dotColor {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.8); }
+    100% { transform: scale(1); }
+}
+
+/* Animace konfety */
+@keyframes confettiFall {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(-60px) rotate(720deg); opacity: 0; }
+}
+
+/* Animace slide měsíce */
+@keyframes slideInLeft {
+    0% { opacity: 0; transform: translateX(-30px); }
+    100% { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInRight {
+    0% { opacity: 0; transform: translateX(30px); }
+    100% { opacity: 1; transform: translateX(0); }
+}
+
+.calendar.slide-left {
+    animation: slideInLeft 0.3s ease;
+}
+
+.calendar.slide-right {
+    animation: slideInRight 0.3s ease;
+}
+
 .main-content {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -194,17 +286,41 @@ h1 {
     align-items: center;
     gap: 14px;
     border: 1px solid #2c2c2e;
+    animation: bounceIn 0.35s ease;
+    overflow: hidden;
+}
+
+#todoList li.removing, #deadlineList li.removing {
+    animation: slideOut 0.3s ease forwards;
 }
 
 #todoList li.done span,
 #deadlineList li.done span {
-    text-decoration: line-through;
     color: #48484a;
+    position: relative;
+}
+
+#todoList li.done span::after,
+#deadlineList li.done span::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 100%;
+    height: 1.5px;
+    background: #48484a;
+    animation: strikeThrough 0.3s ease forwards;
+}
+
+@keyframes strikeThrough {
+    0% { width: 0; }
+    100% { width: 100%; }
 }
 
 .content {
     flex: 1;
     word-break: break-word;
+    position: relative;
 }
 
 #todoList li span,
@@ -212,6 +328,7 @@ h1 {
     font-size: 17px;
     color: #fff;
     display: block;
+    transition: color 0.3s ease;
 }
 
 .deadline-date {
@@ -239,12 +356,13 @@ h1 {
     padding: 4px 8px;
     flex-shrink: 0;
     opacity: 0.5;
-    transition: opacity 0.15s;
+    transition: all 0.2s ease;
 }
 
 #todoList li button:hover,
 #deadlineList li button:hover {
     opacity: 1;
+    transform: scale(1.2);
 }
 
 .calendar-wrapper {
@@ -268,11 +386,16 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.15s;
+    transition: all 0.2s ease;
+}
+
+.cal-arrow:hover {
+    transform: scale(1.15);
+    background: #0a84ff;
 }
 
 .cal-arrow:active {
-    background: #0a84ff;
+    transform: scale(0.9);
 }
 
 .calendar {
@@ -300,7 +423,13 @@ h1 {
     padding: 14px 4px 10px;
     text-align: center;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
+}
+
+.calendar-day:hover {
+    transform: scale(1.1);
+    border-color: #0a84ff;
+    z-index: 1;
 }
 
 .calendar-day:active {
@@ -313,7 +442,20 @@ h1 {
 }
 
 .calendar-day.today {
-    border-color: #0a84ff;
+    border-color: #30d158;
+    box-shadow: 0 0 0 2px rgba(48, 209, 88, 0.3);
+}
+
+.calendar-day.today .day-number {
+    color: #30d158;
+}
+
+.calendar-day.active .day-number {
+    color: #fff !important;
+}
+
+.calendar-day.active .day-name {
+    color: rgba(255,255,255,0.8);
 }
 
 .calendar-day .day-name {
@@ -322,10 +464,6 @@ h1 {
     text-transform: uppercase;
     font-weight: 600;
     letter-spacing: 0.5px;
-}
-
-.calendar-day.active .day-name {
-    color: rgba(255,255,255,0.8);
 }
 
 .calendar-day .day-number {
@@ -347,6 +485,7 @@ h1 {
     height: 6px;
     border-radius: 50%;
     display: inline-block;
+    transition: all 0.4s ease;
 }
 
 .deadline-dot.red {
@@ -355,14 +494,11 @@ h1 {
 
 .deadline-dot.green {
     background: #30d158;
+    animation: dotColor 0.4s ease;
 }
 
 .calendar-day.active .deadline-dot {
     opacity: 0.8;
-}
-
-.calendar-day.active .deadline-dot {
-    background: rgba(255,255,255,0.8);
 }
 
 .empty-message {
@@ -371,28 +507,16 @@ h1 {
     padding: 40px 20px;
     font-size: 15px;
     list-style: none;
-}
-/* Animace hover */
-.calendar-day {
-    transition: all 0.2s ease;
+    animation: fadeIn 0.3s ease;
 }
 
-.calendar-day:hover {
-    transform: scale(1.1);
-    border-color: #0a84ff;
-    z-index: 1;
-}
-
-.cal-arrow:hover {
-    transform: scale(1.15);
-    background: #0a84ff;
-}
-
-.month-btn:hover {
-    transform: scale(1.15);
-    background: #0a84ff;
-}
-
-.tab:hover {
-    color: #fff;
+/* Konfety */
+.confetti-piece {
+    position: fixed;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: confettiFall 0.8s ease forwards;
+    z-index: 999;
 }
