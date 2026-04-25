@@ -15,13 +15,10 @@ body {
     color: #fff;
 }
 
-/* Login obrazovka */
 .login-screen {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
     background: #000;
     display: flex;
     justify-content: center;
@@ -75,16 +72,13 @@ body {
     background: #f0f0f0;
 }
 
-.google-btn:active {
-    transform: scale(0.97);
-}
-
-/* Header */
 .header-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .user-info {
@@ -95,12 +89,6 @@ body {
     padding: 8px 14px;
     border-radius: 20px;
     border: 1px solid #2c2c2e;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.user-info:hover {
-    background: #2c2c2e;
 }
 
 .user-info img {
@@ -118,15 +106,16 @@ body {
 .logout-btn {
     background: transparent;
     border: none;
-    color: #ff453a;
+    color: #8e8e93;
     font-size: 13px;
     cursor: pointer;
-    padding: 2px 8px;
+    padding: 4px 8px;
     border-radius: 8px;
-    transition: background 0.15s;
+    transition: all 0.15s;
 }
 
 .logout-btn:hover {
+    color: #ff453a;
     background: rgba(255,69,58,0.1);
 }
 
@@ -179,10 +168,6 @@ h1 {
     background: #0a84ff;
 }
 
-.month-btn:active {
-    transform: scale(0.95);
-}
-
 .today-btn {
     background: #0a84ff;
     color: #fff;
@@ -204,7 +189,6 @@ h1 {
     font-size: 18px;
     font-weight: 600;
     color: #ebebf5cc;
-    letter-spacing: 0.2px;
     min-width: 130px;
 }
 
@@ -231,9 +215,7 @@ h1 {
     transition: all 0.2s ease;
 }
 
-.tab:hover {
-    color: #fff;
-}
+.tab:hover { color: #fff; }
 
 .tab.active {
     background: #2c2c2e;
@@ -243,7 +225,7 @@ h1 {
 
 .input-area {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     margin-bottom: 24px;
     flex-wrap: wrap;
 }
@@ -251,74 +233,58 @@ h1 {
 #todoInput {
     flex: 1;
     min-width: 150px;
-    padding: 16px 20px;
+    padding: 14px 18px;
     background: #1c1c1e;
     border: 1px solid #2c2c2e;
     border-radius: 14px;
-    font-size: 17px;
+    font-size: 16px;
     outline: none;
     color: #fff;
     transition: border-color 0.2s ease;
 }
 
-#todoInput::placeholder {
-    color: #48484a;
-}
+#todoInput::placeholder { color: #48484a; }
+#todoInput:focus { border-color: #0a84ff; }
 
-#todoInput:focus {
-    border-color: #0a84ff;
-}
-
-#todoDate {
-    padding: 16px 14px;
+#todoDate, #assignTo, #category, #priority {
+    padding: 14px 12px;
     background: #1c1c1e;
     border: 1px solid #2c2c2e;
     border-radius: 14px;
-    font-size: 15px;
-    outline: none;
-    color: #fff;
-    color-scheme: dark;
-}
-
-#assignTo {
-    padding: 16px 14px;
-    background: #1c1c1e;
-    border: 1px solid #2c2c2e;
-    border-radius: 14px;
-    font-size: 15px;
+    font-size: 14px;
     outline: none;
     color: #fff;
     cursor: pointer;
+    transition: border-color 0.2s;
+    color-scheme: dark;
 }
 
-#assignTo option {
+#todoDate:focus, #assignTo:focus, #category:focus, #priority:focus {
+    border-color: #0a84ff;
+}
+
+#assignTo option, #category option, #priority option {
     background: #1c1c1e;
-    color: #fff;
 }
 
 #addBtn {
-    width: 54px;
-    height: 54px;
+    width: 50px;
+    height: 50px;
     background: #0a84ff;
     color: #fff;
     border: none;
     border-radius: 14px;
-    font-size: 28px;
+    font-size: 26px;
     cursor: pointer;
     font-weight: 300;
     flex-shrink: 0;
     transition: all 0.2s ease;
 }
 
-#addBtn:hover {
-    transform: scale(1.08);
-    background: #0070d8;
-}
+#addBtn:hover { transform: scale(1.08); background: #0070d8; }
+#addBtn:active { transform: scale(0.92); }
 
-#addBtn:active {
-    transform: scale(0.92);
-}
-
+/* Animace */
 @keyframes bounceIn {
     0% { opacity: 0; transform: scale(0.8) translateY(-10px); }
     60% { transform: scale(1.05) translateY(2px); }
@@ -350,13 +316,8 @@ h1 {
     100% { transform: translateY(-60px) rotate(720deg); opacity: 0; }
 }
 
-.calendar.slide-left {
-    animation: slideInLeft 0.3s ease;
-}
-
-.calendar.slide-right {
-    animation: slideInRight 0.3s ease;
-}
+.calendar.slide-left { animation: slideInLeft 0.3s ease; }
+.calendar.slide-right { animation: slideInRight 0.3s ease; }
 
 .main-content {
     display: grid;
@@ -368,7 +329,7 @@ h1 {
 @media (max-width: 600px) {
     .main-content { grid-template-columns: 1fr; }
     .app { padding: 24px 18px; border-radius: 24px; margin-top: 10px; }
-    h1 { font-size: 30px; }
+    h1 { font-size: 28px; }
 }
 
 #todoList, #deadlineList {
@@ -380,15 +341,21 @@ h1 {
 
 #todoList li, #deadlineList li {
     background: #1c1c1e;
-    padding: 16px;
+    padding: 14px 16px;
     border-radius: 16px;
     margin-bottom: 10px;
     display: flex;
-    align-items: center;
-    gap: 14px;
+    align-items: flex-start;
+    gap: 12px;
     border: 1px solid #2c2c2e;
+    border-left-width: 4px;
     animation: bounceIn 0.35s ease;
     overflow: hidden;
+    transition: all 0.2s;
+}
+
+#todoList li:hover, #deadlineList li:hover {
+    background: #222;
 }
 
 #todoList li.removing, #deadlineList li.removing {
@@ -406,16 +373,43 @@ h1 {
 }
 
 #todoList li span, #deadlineList li span {
-    font-size: 17px;
+    font-size: 16px;
     color: #fff;
     display: block;
+    margin-bottom: 4px;
 }
 
 .deadline-date {
     font-size: 13px;
     color: #0a84ff;
-    margin-top: 4px;
+    margin-bottom: 4px;
     font-weight: 500;
+}
+
+/* Kategorie a priorita tagy */
+.todo-meta {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin: 4px 0;
+}
+
+.tag {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.category-tag {
+    background: #2c2c2e;
+    color: #ebebf5;
+}
+
+.priority-tag {
+    background: transparent;
+    font-weight: 600;
 }
 
 .assigned-to {
@@ -425,6 +419,7 @@ h1 {
     display: flex;
     align-items: center;
     gap: 4px;
+    flex-wrap: wrap;
 }
 
 .assigned-to img {
@@ -433,23 +428,28 @@ h1 {
     border-radius: 50%;
 }
 
+.assigned-to strong {
+    color: #ebebf5;
+}
+
 #todoList li input[type="checkbox"],
 #deadlineList li input[type="checkbox"] {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
     cursor: pointer;
     accent-color: #0a84ff;
     flex-shrink: 0;
+    margin-top: 2px;
 }
 
 #todoList li button, #deadlineList li button {
     background: transparent;
     border: none;
-    font-size: 20px;
+    font-size: 18px;
     cursor: pointer;
     padding: 4px 8px;
     flex-shrink: 0;
-    opacity: 0.5;
+    opacity: 0.4;
     transition: all 0.2s ease;
 }
 
@@ -482,10 +482,7 @@ h1 {
     transition: all 0.2s ease;
 }
 
-.cal-arrow:hover {
-    transform: scale(1.15);
-    background: #0a84ff;
-}
+.cal-arrow:hover { transform: scale(1.15); background: #0a84ff; }
 
 .calendar {
     display: flex;
@@ -503,45 +500,32 @@ h1 {
 
 .calendar-day {
     flex: 0 0 auto;
-    width: 68px;
+    width: 64px;
     background: #1c1c1e;
     border: 1px solid #2c2c2e;
     border-radius: 18px;
-    padding: 14px 4px 10px;
+    padding: 12px 4px 8px;
     text-align: center;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
-.calendar-day:hover {
-    transform: scale(1.1);
-    border-color: #0a84ff;
-    z-index: 1;
-}
-
-.calendar-day.active {
-    background: #0a84ff;
-    border-color: #0a84ff;
-}
-
-.calendar-day.today {
-    border-color: #30d158;
-    box-shadow: 0 0 0 2px rgba(48,209,88,0.3);
-}
-
+.calendar-day:hover { transform: scale(1.1); border-color: #0a84ff; z-index: 1; }
+.calendar-day.active { background: #0a84ff; border-color: #0a84ff; }
+.calendar-day.today { border-color: #30d158; box-shadow: 0 0 0 2px rgba(48,209,88,0.3); }
 .calendar-day.today .day-number { color: #30d158; }
 .calendar-day.active .day-number { color: #fff !important; }
 .calendar-day.active .day-name { color: rgba(255,255,255,0.8); }
 
 .calendar-day .day-name {
-    font-size: 12px;
+    font-size: 11px;
     color: #8e8e93;
     text-transform: uppercase;
     font-weight: 600;
 }
 
 .calendar-day .day-number {
-    font-size: 24px;
+    font-size: 22px;
     font-weight: 700;
     color: #fff;
     margin-top: 4px;
@@ -551,7 +535,7 @@ h1 {
     display: flex;
     justify-content: center;
     gap: 3px;
-    margin-top: 6px;
+    margin-top: 5px;
 }
 
 .deadline-dot {
@@ -671,7 +655,7 @@ h1 {
     border-radius: 10px;
     cursor: pointer;
     transition: all 0.15s;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
     color: #fff;
     gap: 2px;
