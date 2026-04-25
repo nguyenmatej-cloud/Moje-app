@@ -345,9 +345,20 @@ h1 {
 .deadline-dot {
     width: 6px;
     height: 6px;
-    background: #ff453a;
     border-radius: 50%;
     display: inline-block;
+}
+
+.deadline-dot.red {
+    background: #ff453a;
+}
+
+.deadline-dot.green {
+    background: #30d158;
+}
+
+.calendar-day.active .deadline-dot {
+    opacity: 0.8;
 }
 
 .calendar-day.active .deadline-dot {
