@@ -95,7 +95,7 @@ calRight.addEventListener('click', () => {
     calendar.scrollBy({ left: 130, behavior: 'smooth' });
 });
 
-// Spočítej deadliny pro každý den v měsíci
+// Spočítej deadliny pro každý den
 function getDeadlineCounts() {
     const counts = {};
     Object.values(allTodos).forEach(todo => {
@@ -143,12 +143,12 @@ function renderCalendar() {
         dayEl.appendChild(dayName);
         dayEl.appendChild(dayNumber);
 
-        // Červené tečky pro deadliny
+        // Červené tečky
         const count = deadlineCounts[i] || 0;
         if (count > 0) {
             const dotsEl = document.createElement('div');
             dotsEl.className = 'deadline-dots';
-            const maxDots = Math.min(count, 3); // max 3 tečky
+            const maxDots = Math.min(count, 3);
             for (let d = 0; d < maxDots; d++) {
                 const dot = document.createElement('span');
                 dot.className = 'deadline-dot';
@@ -163,6 +163,15 @@ function renderCalendar() {
             selectedYear = currentYear;
             document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('active'));
             dayEl.classList.add('active');
+
+            // Přepni automaticky na záložku Deadlines
+            tabs.forEach(t => t.classList.remove('active'));
+            document.querySelector('[data-tab="deadlines"]').classList.add('active');
+            activeTab = 'deadlines';
+            list.style.display = 'none';
+            deadlineList.style.display = 'block';
+            dateInput.style.display = 'block';
+
             renderTodos();
         });
 
@@ -199,7 +208,7 @@ function renderTodos() {
     if (activeTab === 'todos') {
         let found = false;
 
-        if (data && !filterByDay) {
+        if (data) {
             Object.keys(data).forEach(key => {
                 const todo = data[key];
                 if (todo.deadline) return;
@@ -208,13 +217,7 @@ function renderTodos() {
             });
         }
 
-        if (filterByDay) {
-            const dateFormatted = selectedDay + '. ' + (selectedMonth + 1) + '. ' + selectedYear;
-            const empty = document.createElement('li');
-            empty.className = 'empty-message';
-            empty.textContent = '😊 Na ' + dateFormatted + ' nemáte žádné úkoly!';
-            list.appendChild(empty);
-        } else if (!found) {
+        if (!found) {
             const empty = document.createElement('li');
             empty.className = 'empty-message';
             empty.textContent = 'Žádné úkoly';
