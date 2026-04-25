@@ -18,22 +18,22 @@ body {
 .app {
     background: #111111;
     width: 100%;
-    max-width: 600px;
-    padding: 28px 24px;
+    max-width: 900px;
+    padding: 36px 40px;
     border-radius: 32px;
-    margin-top: 16px;
+    margin-top: 20px;
     border: 1px solid #222;
 }
 
 .header {
-    margin-bottom: 24px;
+    margin-bottom: 28px;
 }
 
 h1 {
     color: #fff;
-    font-size: 34px;
+    font-size: 40px;
     font-weight: 700;
-    letter-spacing: -1px;
+    letter-spacing: -1.5px;
     margin-bottom: 12px;
 }
 
@@ -48,8 +48,8 @@ h1 {
     color: #fff;
     border: none;
     border-radius: 50%;
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
     font-size: 18px;
     cursor: pointer;
     display: flex;
@@ -59,12 +59,12 @@ h1 {
 }
 
 .month-btn:active {
-    background: #f5c518;
-    color: #000;
+    background: #0a84ff;
+    color: #fff;
 }
 
 #currentDate {
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 600;
     color: #ebebf5cc;
     letter-spacing: 0.2px;
@@ -73,24 +73,24 @@ h1 {
 .tabs {
     display: flex;
     gap: 8px;
-    margin-bottom: 22px;
+    margin-bottom: 24px;
     background: #1c1c1e;
     padding: 4px;
     border-radius: 14px;
+    max-width: 400px;
 }
 
 .tab {
     flex: 1;
-    padding: 11px;
+    padding: 12px;
     background: transparent;
     color: #8e8e93;
     border: none;
     border-radius: 11px;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
-    letter-spacing: -0.2px;
 }
 
 .tab.active {
@@ -102,21 +102,18 @@ h1 {
 .input-area {
     display: flex;
     gap: 10px;
-    margin-bottom: 22px;
-    flex-wrap: wrap;
+    margin-bottom: 24px;
 }
 
 #todoInput {
     flex: 1;
-    min-width: 150px;
-    padding: 15px 18px;
+    padding: 16px 20px;
     background: #1c1c1e;
     border: 1px solid #2c2c2e;
     border-radius: 14px;
     font-size: 17px;
     outline: none;
     color: #fff;
-    letter-spacing: -0.2px;
 }
 
 #todoInput::placeholder {
@@ -128,7 +125,7 @@ h1 {
 }
 
 #todoDate {
-    padding: 15px 14px;
+    padding: 16px 14px;
     background: #1c1c1e;
     border: 1px solid #2c2c2e;
     border-radius: 14px;
@@ -139,13 +136,13 @@ h1 {
 }
 
 #addBtn {
-    width: 52px;
-    height: 52px;
+    width: 54px;
+    height: 54px;
     background: #0a84ff;
     color: #fff;
     border: none;
     border-radius: 14px;
-    font-size: 26px;
+    font-size: 28px;
     cursor: pointer;
     font-weight: 300;
     flex-shrink: 0;
@@ -157,10 +154,34 @@ h1 {
     transform: scale(0.95);
 }
 
+/* Layout na PC - dva sloupce */
+.main-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+@media (max-width: 600px) {
+    .main-content {
+        grid-template-columns: 1fr;
+    }
+
+    .app {
+        padding: 24px 18px;
+        border-radius: 24px;
+        margin-top: 10px;
+    }
+
+    h1 {
+        font-size: 30px;
+    }
+}
+
 #todoList, #deadlineList {
     list-style: none;
     padding: 0;
-    margin: 0 0 24px 0;
+    margin: 0;
     min-height: 60px;
 }
 
@@ -173,7 +194,6 @@ h1 {
     align-items: center;
     gap: 14px;
     border: 1px solid #2c2c2e;
-    transition: opacity 0.2s;
 }
 
 #todoList li.done span,
@@ -192,7 +212,6 @@ h1 {
     font-size: 17px;
     color: #fff;
     display: block;
-    letter-spacing: -0.2px;
 }
 
 .deadline-date {
@@ -200,7 +219,6 @@ h1 {
     color: #0a84ff;
     margin-top: 4px;
     font-weight: 500;
-    letter-spacing: 0.1px;
 }
 
 #todoList li input[type="checkbox"],
@@ -233,7 +251,7 @@ h1 {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding-top: 22px;
+    padding-top: 24px;
     border-top: 1px solid #2c2c2e;
 }
 
@@ -242,8 +260,8 @@ h1 {
     color: #fff;
     border: none;
     border-radius: 50%;
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
     font-size: 18px;
     cursor: pointer;
     flex-shrink: 0;
@@ -275,11 +293,11 @@ h1 {
 
 .calendar-day {
     flex: 0 0 auto;
-    width: 62px;
+    width: 68px;
     background: #1c1c1e;
     border: 1px solid #2c2c2e;
     border-radius: 18px;
-    padding: 12px 4px 8px;
+    padding: 14px 4px 10px;
     text-align: center;
     cursor: pointer;
     transition: all 0.2s;
@@ -299,7 +317,7 @@ h1 {
 }
 
 .calendar-day .day-name {
-    font-size: 11px;
+    font-size: 12px;
     color: #8e8e93;
     text-transform: uppercase;
     font-weight: 600;
@@ -311,22 +329,17 @@ h1 {
 }
 
 .calendar-day .day-number {
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 700;
     color: #fff;
     margin-top: 4px;
-    letter-spacing: -0.5px;
-}
-
-.calendar-day.active .day-number {
-    color: #fff;
 }
 
 .deadline-dots {
     display: flex;
     justify-content: center;
     gap: 3px;
-    margin-top: 5px;
+    margin-top: 6px;
 }
 
 .deadline-dot {
@@ -347,5 +360,4 @@ h1 {
     padding: 40px 20px;
     font-size: 15px;
     list-style: none;
-    letter-spacing: -0.2px;
 }
