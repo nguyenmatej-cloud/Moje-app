@@ -45,6 +45,8 @@
             <button class="tab" data-tab="deadlines">Deadlines</button>
         </div>
 
+        <div class="filter-bar" id="filterBar"></div>
+
         <div class="input-area">
             <input type="text" id="todoInput" placeholder="Nový úkol...">
             <input type="date" id="todoDate">
@@ -72,10 +74,11 @@
         </div>
         <ul id="searchResults" style="display: none;"></ul>
 
-        <div class="calendar-wrapper">
-            <button class="cal-arrow" id="calLeft">‹</button>
+        <div class="month-view">
+            <div class="mv-weekdays">
+                <span>Po</span><span>Út</span><span>St</span><span>Čt</span><span>Pá</span><span>So</span><span>Ne</span>
+            </div>
             <div class="calendar" id="calendar"></div>
-            <button class="cal-arrow" id="calRight">›</button>
         </div>
     </div>
 

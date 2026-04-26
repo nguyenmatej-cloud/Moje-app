@@ -29,6 +29,7 @@ let selectedMonth = null;
 let selectedYear = null;
 let slideDirection = null;
 let searchQuery = '';
+let activeFilter = 'all';
 
 const months = ['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen',
     'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'];
@@ -181,6 +182,7 @@ function initApp() {
     onValue(usersRef, (snapshot) => {
         allUsers = snapshot.val() || {};
         updateAssignSelect();
+        renderFilterBar();
     });
 
     onValue(todosRef, (snapshot) => {
@@ -249,14 +251,6 @@ function initApp() {
         renderCalendar(); renderTodos();
     });
 
-    document.getElementById('calLeft').addEventListener('click', () => {
-        document.getElementById('calendar').scrollBy({ left: -150, behavior: 'smooth' });
-    });
-
-    document.getElementById('calRight').addEventListener('click', () => {
-        document.getElementById('calendar').scrollBy({ left: 150, behavior: 'smooth' });
-    });
-
     document.getElementById('addBtn').addEventListener('click', addTodo);
     document.getElementById('todoInput').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') addTodo();
@@ -287,6 +281,52 @@ function initApp() {
         searchQuery = e.target.value.trim();
         renderSearch();
     });
+
+}
+
+function matchesFilter(todo) {
+    if (activeFilter === 'all') return true;
+    if (activeFilter === 'mine') {
+        if (todo.assignedTo) return todo.assignedTo.uid === currentUser.uid;
+        return todo.createdBy?.uid === currentUser.uid;
+    }
+    if (todo.assignedTo) return todo.assignedTo.uid === activeFilter;
+    return false;
+}
+
+function setFilter(filter) {
+    activeFilter = filter;
+    renderFilterBar();
+    renderCalendar();
+    renderTodos();
+}
+
+function renderFilterBar() {
+    const bar = document.getElementById('filterBar');
+    if (!bar || !currentUser) return;
+    bar.innerHTML = '';
+
+    const defs = [
+        { filter: 'all', label: 'Všichni', photo: null },
+        { filter: 'mine', label: 'Moje', photo: currentUser.photoURL }
+    ];
+    Object.entries(allUsers).forEach(([uid, user]) => {
+        if (uid === currentUser.uid) return;
+        defs.push({ filter: uid, label: user.nickname || user.name?.split(' ')[0] || '?', photo: user.photo });
+    });
+
+    defs.forEach(({ filter, label, photo }) => {
+        const btn = document.createElement('button');
+        btn.className = 'filter-btn' + (activeFilter === filter ? ' active' : '');
+        if (photo) {
+            const img = document.createElement('img');
+            img.src = photo;
+            btn.appendChild(img);
+        }
+        btn.appendChild(document.createTextNode(label));
+        btn.addEventListener('click', () => setFilter(filter));
+        bar.appendChild(btn);
+    });
 }
 
 function updateAssignSelect() {
@@ -300,104 +340,6 @@ function updateAssignSelect() {
     });
 }
 
-function getDeadlineCounts() {
-    const counts = {};
-    Object.values(allTodos).forEach(todo => {
-        if (todo.deadline) {
-            const d = new Date(todo.deadline + 'T00:00:00');
-            if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
-                const day = d.getDate();
-                if (!counts[day]) counts[day] = { done: 0, undone: 0 };
-                if (todo.done) counts[day].done++;
-                else counts[day].undone++;
-            }
-        }
-    });
-    return counts;
-}
-
-function showMonthGrid() {
-    const existing = document.getElementById('monthGrid');
-    if (existing) { existing.remove(); return; }
-    document.getElementById('yearPicker')?.remove();
-
-    const grid = document.createElement('div');
-    grid.id = 'monthGrid';
-    grid.className = 'month-grid';
-
-    const header = document.createElement('div');
-    header.className = 'month-grid-header';
-    ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'].forEach(d => {
-        const cell = document.createElement('div');
-        cell.className = 'month-grid-dayname';
-        cell.textContent = d;
-        header.appendChild(cell);
-    });
-    grid.appendChild(header);
-
-    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
-    const offset = firstDay === 0 ? 6 : firstDay - 1;
-    const daysRow = document.createElement('div');
-    daysRow.className = 'month-grid-days';
-
-    for (let i = 0; i < offset; i++) {
-        const empty = document.createElement('div');
-        empty.className = 'month-grid-day empty';
-        daysRow.appendChild(empty);
-    }
-
-    const deadlineCounts = getDeadlineCounts();
-
-    for (let i = 1; i <= daysInMonth; i++) {
-        const cell = document.createElement('div');
-        cell.className = 'month-grid-day';
-        const date = new Date(currentYear, currentMonth, i);
-        if (date.toDateString() === today.toDateString()) cell.classList.add('today');
-        if (i === selectedDay && currentMonth === selectedMonth && currentYear === selectedYear) cell.classList.add('active');
-
-        const num = document.createElement('span');
-        num.textContent = i;
-        cell.appendChild(num);
-
-        const counts = deadlineCounts[i];
-        if (counts) {
-            const dots = document.createElement('div');
-            dots.className = 'month-grid-dots';
-            for (let d = 0; d < Math.min(counts.undone, 2); d++) {
-                const dot = document.createElement('span');
-                dot.className = 'month-grid-dot red';
-                dots.appendChild(dot);
-            }
-            for (let d = 0; d < Math.min(counts.done, 2); d++) {
-                const dot = document.createElement('span');
-                dot.className = 'month-grid-dot green';
-                dots.appendChild(dot);
-            }
-            cell.appendChild(dots);
-        }
-
-        cell.addEventListener('click', () => {
-            selectedDay = i;
-            selectedMonth = currentMonth;
-            selectedYear = currentYear;
-            grid.remove();
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelector('[data-tab="deadlines"]').classList.add('active');
-            activeTab = 'deadlines';
-            document.getElementById('todoList').style.display = 'none';
-            document.getElementById('deadlineList').style.display = 'block';
-            document.getElementById('todoDate').style.display = 'block';
-            renderCalendar();
-            renderTodos();
-        });
-
-        daysRow.appendChild(cell);
-    }
-
-    grid.appendChild(daysRow);
-    document.querySelector('.header').appendChild(grid);
-}
 
 function showYearPicker() {
     const existing = document.getElementById('yearPicker');
@@ -428,9 +370,9 @@ function renderCalendar() {
     const calendar = document.getElementById('calendar');
     const currentDateEl = document.getElementById('currentDate');
     calendar.innerHTML = '';
+    document.getElementById('yearPicker')?.remove();
 
-    currentDateEl.innerHTML = `<span class="month-btn-label" id="monthLabel">${months[currentMonth]}</span> <span class="year-btn" id="yearBtn">${currentYear}</span>`;
-    document.getElementById('monthLabel').addEventListener('click', showMonthGrid);
+    currentDateEl.innerHTML = `<span class="month-btn-label">${months[currentMonth]}</span> <span class="year-btn" id="yearBtn">${currentYear}</span>`;
     document.getElementById('yearBtn').addEventListener('click', showYearPicker);
 
     if (slideDirection === 'left') {
@@ -445,67 +387,72 @@ function renderCalendar() {
     slideDirection = null;
 
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-    const deadlineCounts = getDeadlineCounts();
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+    const offset = firstDay === 0 ? 6 : firstDay - 1;
+
+    const tasksByDay = {};
+    Object.entries(allTodos).forEach(([key, todo]) => {
+        if (!todo.deadline || !matchesFilter(todo)) return;
+        const d = new Date(todo.deadline + 'T00:00:00');
+        if (d.getMonth() !== currentMonth || d.getFullYear() !== currentYear) return;
+        const day = d.getDate();
+        if (!tasksByDay[day]) tasksByDay[day] = [];
+        tasksByDay[day].push({ key, ...todo });
+    });
+
+    for (let i = 0; i < offset; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'cal-cell empty';
+        calendar.appendChild(empty);
+    }
 
     for (let i = 1; i <= daysInMonth; i++) {
         const date = new Date(currentYear, currentMonth, i);
-        const dayEl = document.createElement('div');
-        dayEl.className = 'calendar-day';
+        const cell = document.createElement('div');
+        cell.className = 'cal-cell';
 
-        if (date.toDateString() === today.toDateString()) dayEl.classList.add('today');
-        if (i === selectedDay && currentMonth === selectedMonth && currentYear === selectedYear) dayEl.classList.add('active');
+        if (date.toDateString() === today.toDateString()) cell.classList.add('today');
+        if (i === selectedDay && currentMonth === selectedMonth && currentYear === selectedYear) cell.classList.add('active');
 
-        const dayName = document.createElement('div');
-        dayName.className = 'day-name';
-        dayName.textContent = dayNames[date.getDay()];
+        const numEl = document.createElement('div');
+        numEl.className = 'cal-day-num';
+        numEl.textContent = i;
+        cell.appendChild(numEl);
 
-        const dayNumber = document.createElement('div');
-        dayNumber.className = 'day-number';
-        dayNumber.textContent = i;
+        const tasks = tasksByDay[i] || [];
+        tasks.slice(0, 3).forEach(todo => {
+            const chip = document.createElement('div');
+            chip.className = 'cal-task-chip' + (todo.done ? ' done' : '');
+            const color = priorityLabels[todo.priority]?.color || '#0a84ff';
+            chip.style.background = color + '28';
+            chip.style.borderLeft = `2px solid ${color}`;
+            chip.textContent = todo.text;
+            cell.appendChild(chip);
+        });
 
-        dayEl.appendChild(dayName);
-        dayEl.appendChild(dayNumber);
-
-        const counts = deadlineCounts[i];
-        if (counts) {
-            const dotsEl = document.createElement('div');
-            dotsEl.className = 'deadline-dots';
-            for (let d = 0; d < Math.min(counts.undone, 3); d++) {
-                const dot = document.createElement('span');
-                dot.className = 'deadline-dot red';
-                dotsEl.appendChild(dot);
-            }
-            for (let d = 0; d < Math.min(counts.done, 3); d++) {
-                const dot = document.createElement('span');
-                dot.className = 'deadline-dot green';
-                dotsEl.appendChild(dot);
-            }
-            dayEl.appendChild(dotsEl);
+        if (tasks.length > 3) {
+            const more = document.createElement('div');
+            more.className = 'cal-more';
+            more.textContent = `+${tasks.length - 3}`;
+            cell.appendChild(more);
         }
 
-        dayEl.addEventListener('click', () => {
+        cell.addEventListener('click', () => {
             selectedDay = i;
             selectedMonth = currentMonth;
             selectedYear = currentYear;
-            document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('active'));
-            dayEl.classList.add('active');
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelector('[data-tab="deadlines"]').classList.add('active');
             activeTab = 'deadlines';
             document.getElementById('todoList').style.display = 'none';
             document.getElementById('deadlineList').style.display = 'block';
             document.getElementById('todoDate').style.display = 'block';
-            document.getElementById('monthGrid')?.remove();
+            renderCalendar();
             renderTodos();
         });
 
-        calendar.appendChild(dayEl);
+        calendar.appendChild(cell);
     }
-
-    setTimeout(() => {
-        const active = calendar.querySelector('.active') || calendar.querySelector('.today');
-        if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-    }, 100);
 }
 
 function spawnConfetti(x, y) {
@@ -578,6 +525,7 @@ function renderTodos() {
         Object.keys(allTodos).forEach(key => {
             const todo = allTodos[key];
             if (todo.deadline) return;
+            if (!matchesFilter(todo)) return;
             list.appendChild(createTodoItem(key, todo));
             found = true;
         });
@@ -591,6 +539,7 @@ function renderTodos() {
         Object.keys(allTodos).forEach(key => {
             const todo = allTodos[key];
             if (!todo.deadline) return;
+            if (!matchesFilter(todo)) return;
             if (filterByDay && todo.deadline !== selectedDateStr) return;
             deadlines.push({ key, ...todo });
         });
