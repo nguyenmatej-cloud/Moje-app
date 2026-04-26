@@ -61,11 +61,12 @@
                 <div class="tabs">
                     <button class="tab active" data-tab="todos">Úkoly</button>
                     <button class="tab" data-tab="deadlines">Deadlines</button>
+                    <button class="tab" data-tab="stats">📊 Stats</button>
                 </div>
 
                 <div class="filter-bar" id="filterBar"></div>
 
-                <div class="input-area">
+                <div class="input-area" id="inputArea">
                     <input type="text" id="todoInput" placeholder="Nový úkol...">
                     <input type="date" id="todoDate">
                     <select id="assignTo">
@@ -91,6 +92,7 @@
                     <ul id="deadlineList" style="display: none;"></ul>
                 </div>
                 <ul id="searchResults" style="display: none;"></ul>
+                <div id="statsPanel" style="display: none;"></div>
             </main>
         </div>
     </div>

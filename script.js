@@ -183,12 +183,15 @@ function initApp() {
         allUsers = snapshot.val() || {};
         updateAssignSelect();
         renderFilterBar();
+        if (activeTab === 'stats') renderStats();
     });
 
     onValue(todosRef, (snapshot) => {
         allTodos = snapshot.val() || {};
         renderCalendar();
-        renderTodos();
+        if (activeTab === 'stats') renderStats();
+        else renderTodos();
+        checkDeadlineNotifications();
     });
 
     document.querySelectorAll('.tab').forEach(tab => {
@@ -196,22 +199,9 @@ function initApp() {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             activeTab = tab.dataset.tab;
-            selectedDay = null;
-            selectedMonth = null;
-            selectedYear = null;
-
-            if (activeTab === 'todos') {
-                document.getElementById('todoList').style.display = 'block';
-                document.getElementById('deadlineList').style.display = 'none';
-                document.getElementById('todoDate').style.display = 'none';
-            } else {
-                document.getElementById('todoList').style.display = 'none';
-                document.getElementById('deadlineList').style.display = 'block';
-                document.getElementById('todoDate').style.display = 'block';
-            }
-
+            selectedDay = null; selectedMonth = null; selectedYear = null;
+            showTab(activeTab);
             renderCalendar();
-            renderTodos();
         });
     });
 
@@ -227,12 +217,8 @@ function initApp() {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.querySelector('[data-tab="deadlines"]').classList.add('active');
         activeTab = 'deadlines';
-        document.getElementById('todoList').style.display = 'none';
-        document.getElementById('deadlineList').style.display = 'block';
-        document.getElementById('todoDate').style.display = 'block';
-
+        showTab('deadlines');
         renderCalendar();
-        renderTodos();
     });
 
     document.getElementById('prevMonth').addEventListener('click', () => {
@@ -282,6 +268,7 @@ function initApp() {
         renderSearch();
     });
 
+    requestNotificationPermission();
 }
 
 function matchesFilter(todo) {
@@ -307,15 +294,15 @@ function renderFilterBar() {
     bar.innerHTML = '';
 
     const defs = [
-        { filter: 'all', label: 'Všichni', photo: null },
-        { filter: 'mine', label: 'Moje', photo: currentUser.photoURL }
+        { filter: 'all', label: 'Všichni', photo: null, karma: null },
+        { filter: 'mine', label: 'Moje', photo: currentUser.photoURL, karma: allUsers[currentUser.uid]?.karma || 0 }
     ];
     Object.entries(allUsers).forEach(([uid, user]) => {
         if (uid === currentUser.uid) return;
-        defs.push({ filter: uid, label: user.nickname || user.name?.split(' ')[0] || '?', photo: user.photo });
+        defs.push({ filter: uid, label: user.nickname || user.name?.split(' ')[0] || '?', photo: user.photo, karma: user.karma || 0 });
     });
 
-    defs.forEach(({ filter, label, photo }) => {
+    defs.forEach(({ filter, label, photo, karma }) => {
         const btn = document.createElement('button');
         btn.className = 'filter-btn' + (activeFilter === filter ? ' active' : '');
         if (photo) {
@@ -324,9 +311,152 @@ function renderFilterBar() {
             btn.appendChild(img);
         }
         btn.appendChild(document.createTextNode(label));
+        if (karma !== null) {
+            const karmaSpan = document.createElement('span');
+            karmaSpan.className = 'filter-karma';
+            karmaSpan.textContent = karma + '⚡';
+            btn.appendChild(karmaSpan);
+        }
         btn.addEventListener('click', () => setFilter(filter));
         bar.appendChild(btn);
     });
+}
+
+function showTab(tab) {
+    const isStats = tab === 'stats';
+    const isDeadlines = tab === 'deadlines';
+    const isTodos = tab === 'todos';
+
+    document.getElementById('mainContent').style.display = isStats ? 'none' : '';
+    document.getElementById('statsPanel').style.display = isStats ? '' : 'none';
+    document.getElementById('inputArea').style.display = isStats ? 'none' : '';
+    document.getElementById('todoList').style.display = isTodos ? '' : 'none';
+    document.getElementById('deadlineList').style.display = isDeadlines ? '' : 'none';
+    document.getElementById('todoDate').style.display = isDeadlines ? '' : 'none';
+
+    if (isStats) renderStats();
+    else renderTodos();
+}
+
+async function deltaKarma(uid, delta) {
+    if (!uid || !delta) return;
+    const snap = await get(ref(db, 'users/' + uid + '/karma'));
+    const current = snap.val() || 0;
+    update(ref(db, 'users/' + uid), { karma: Math.max(0, current + delta) });
+}
+
+function renderStats() {
+    const panel = document.getElementById('statsPanel');
+    if (!panel) return;
+    panel.innerHTML = '';
+
+    const now = new Date();
+    const thisMonth = now.getMonth();
+    const thisYear = now.getFullYear();
+
+    let totalTodos = 0, doneTodos = 0;
+    let totalDeadlines = 0, doneDeadlines = 0;
+
+    Object.values(allTodos).forEach(todo => {
+        if (todo.deadline) {
+            const d = new Date(todo.deadline + 'T00:00:00');
+            if (d.getMonth() === thisMonth && d.getFullYear() === thisYear) {
+                totalDeadlines++;
+                if (todo.done) doneDeadlines++;
+            }
+        } else {
+            totalTodos++;
+            if (todo.done) doneTodos++;
+        }
+    });
+
+    const totalAll = totalTodos + totalDeadlines;
+    const doneAll = doneTodos + doneDeadlines;
+    const pct = totalAll > 0 ? Math.round(doneAll / totalAll * 100) : 0;
+
+    const grid = document.createElement('div');
+    grid.className = 'stats-grid';
+
+    [
+        { label: 'Splněné úkoly', value: doneTodos, sub: `z ${totalTodos} celkem`, color: '#30d158' },
+        { label: 'Splněné deadliny', value: doneDeadlines, sub: `z ${totalDeadlines} tento měsíc`, color: '#0a84ff' },
+        { label: 'Hotovo celkem', value: pct + '%', sub: `${doneAll} z ${totalAll} splněno`, color: '#ffd60a' }
+    ].forEach(({ label, value, sub, color }) => {
+        const card = document.createElement('div');
+        card.className = 'stat-card';
+        card.innerHTML = `<div class="stat-value" style="color:${color}">${value}</div><div class="stat-label">${label}</div><div class="stat-sub">${sub}</div>`;
+        grid.appendChild(card);
+    });
+    panel.appendChild(grid);
+
+    const progSection = document.createElement('div');
+    progSection.className = 'stats-section';
+    progSection.innerHTML = `
+        <h3 class="stats-section-title">Splněno vs. čeká</h3>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+        <div class="progress-bar-labels">
+            <span style="color:#30d158">✓ Splněno: ${doneAll}</span>
+            <span style="color:#ff453a">○ Čeká: ${totalAll - doneAll}</span>
+        </div>`;
+    panel.appendChild(progSection);
+
+    const lbSection = document.createElement('div');
+    lbSection.className = 'stats-section';
+    const lbTitle = document.createElement('h3');
+    lbTitle.className = 'stats-section-title';
+    lbTitle.textContent = '⚡ Karma žebříček';
+    lbSection.appendChild(lbTitle);
+
+    const lb = document.createElement('div');
+    lb.className = 'leaderboard';
+    const sorted = Object.entries(allUsers).sort((a, b) => (b[1].karma || 0) - (a[1].karma || 0));
+    sorted.forEach(([uid, user], i) => {
+        const row = document.createElement('div');
+        row.className = 'lb-row' + (uid === currentUser.uid ? ' lb-row-me' : '');
+        const rankEmoji = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
+        row.innerHTML = `<span class="lb-rank">${rankEmoji}</span><img class="lb-avatar" src="${user.photo || ''}" alt=""><span class="lb-name">${user.nickname || user.name?.split(' ')[0] || '?'}</span><span class="lb-karma">${user.karma || 0} ⚡</span>`;
+        lb.appendChild(row);
+    });
+    lbSection.appendChild(lb);
+    panel.appendChild(lbSection);
+}
+
+function requestNotificationPermission() {
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+}
+
+function checkDeadlineNotifications() {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+    const todayD = new Date();
+    todayD.setHours(0, 0, 0, 0);
+    const tomorrowD = new Date(todayD);
+    tomorrowD.setDate(tomorrowD.getDate() + 1);
+    const todayStr = todayD.toISOString().split('T')[0];
+    const tomorrowStr = tomorrowD.toISOString().split('T')[0];
+
+    const notified = JSON.parse(localStorage.getItem('notifiedDeadlines') || '{}');
+
+    Object.entries(allTodos).forEach(([key, todo]) => {
+        if (!todo.deadline || todo.done) return;
+        if (todo.deadline === todayStr) {
+            const k = key + '_today_' + todayStr;
+            if (!notified[k]) {
+                new Notification('⏰ Deadline dnes!', { body: todo.text });
+                notified[k] = true;
+            }
+        } else if (todo.deadline === tomorrowStr) {
+            const k = key + '_tmrw_' + todayStr;
+            if (!notified[k]) {
+                new Notification('📅 Deadline zítra', { body: todo.text });
+                notified[k] = true;
+            }
+        }
+    });
+
+    localStorage.setItem('notifiedDeadlines', JSON.stringify(notified));
 }
 
 function updateAssignSelect() {
@@ -649,8 +779,11 @@ function createTodoItem(key, todo) {
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.checked = todo.done;
-    checkbox.addEventListener('change', () => {
-        update(ref(db, 'todos/' + key), { done: checkbox.checked });
+    checkbox.addEventListener('change', async () => {
+        const nowDone = checkbox.checked;
+        update(ref(db, 'todos/' + key), { done: nowDone });
+        const uid = todo.assignedTo?.uid || todo.createdBy?.uid;
+        await deltaKarma(uid, nowDone ? 5 : -5);
     });
 
     const content = document.createElement('div');
@@ -713,8 +846,21 @@ function createDeadlineItem(key, todo) {
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.checked = todo.done;
-    checkbox.addEventListener('change', () => {
-        update(ref(db, 'todos/' + key), { done: checkbox.checked });
+    checkbox.addEventListener('change', async () => {
+        const nowDone = checkbox.checked;
+        const uid = todo.assignedTo?.uid || todo.createdBy?.uid;
+        if (nowDone) {
+            const todayD = new Date();
+            todayD.setHours(0, 0, 0, 0);
+            const deadline = new Date(todo.deadline + 'T00:00:00');
+            const karma = todayD < deadline ? 15 : 10;
+            update(ref(db, 'todos/' + key), { done: true, karmaGiven: karma });
+            await deltaKarma(uid, karma);
+        } else {
+            const karmaGiven = todo.karmaGiven || 10;
+            update(ref(db, 'todos/' + key), { done: false, karmaGiven: null });
+            await deltaKarma(uid, -karmaGiven);
+        }
     });
 
     const content = document.createElement('div');
