@@ -160,20 +160,32 @@ function showNicknameDialog(user) {
     input.addEventListener('keypress', (e) => { if (e.key === 'Enter') confirm(); });
 }
 
+const ADMIN_EMAIL = 'nguyenmatej@gmail.com';
+
+function isAdmin() {
+    return currentUser?.email === ADMIN_EMAIL || allUsers[currentUser?.uid]?.isAdmin === true;
+}
+
 function startApp(user, userData) {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('mainApp').style.display = 'block';
+
+    const adminBtnHtml = user.email === ADMIN_EMAIL
+        ? `<button class="logout-btn admin-btn" id="adminBtn">⚙️ Správa</button>`
+        : '';
 
     const userInfo = document.getElementById('userInfo');
     userInfo.innerHTML = `
         <img src="${userData.photo || user.photoURL}" alt="${currentNickname}">
         <span>${currentNickname}</span>
         <button class="logout-btn" id="changeNickBtn">✏️</button>
+        ${adminBtnHtml}
         <button class="logout-btn" id="logoutBtn">Odhlásit</button>
     `;
 
     document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
     document.getElementById('changeNickBtn').addEventListener('click', () => showNicknameDialog(currentUser));
+    document.getElementById('adminBtn')?.addEventListener('click', showAdminPanel);
 
     initApp();
 }
@@ -184,6 +196,7 @@ function initApp() {
         updateAssignSelect();
         renderFilterBar();
         if (activeTab === 'stats') renderStats();
+        if (document.getElementById('adminBody')) renderAdminBody();
     });
 
     onValue(todosRef, (snapshot) => {
@@ -457,6 +470,143 @@ function checkDeadlineNotifications() {
     });
 
     localStorage.setItem('notifiedDeadlines', JSON.stringify(notified));
+}
+
+function showAdminPanel() {
+    document.getElementById('adminPanelOverlay')?.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'adminPanelOverlay';
+    overlay.className = 'admin-overlay';
+    overlay.innerHTML = `
+        <div class="admin-panel">
+            <div class="admin-header">
+                <h2>⚙️ Správa členů</h2>
+                <button class="admin-close" id="adminClose">✕</button>
+            </div>
+            <div class="admin-body" id="adminBody"></div>
+        </div>`;
+    document.body.appendChild(overlay);
+    document.getElementById('adminClose').addEventListener('click', () => overlay.remove());
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    renderAdminBody();
+}
+
+function renderAdminBody() {
+    const body = document.getElementById('adminBody');
+    if (!body) return;
+    body.innerHTML = '';
+
+    // ── Members section ──
+    const membersSection = document.createElement('div');
+    membersSection.className = 'admin-section';
+    const membersTitle = document.createElement('h3');
+    membersTitle.className = 'admin-section-title';
+    membersTitle.textContent = '👥 Členové';
+    membersSection.appendChild(membersTitle);
+
+    Object.entries(allUsers).forEach(([uid, user]) => {
+        const row = document.createElement('div');
+        row.className = 'admin-member-row';
+        const deleteBtnHtml = uid !== currentUser.uid
+            ? `<button class="admin-action-btn admin-danger" data-action="delete" data-uid="${uid}">🗑️ Smazat</button>`
+            : '';
+        row.innerHTML = `
+            <img class="admin-member-photo" src="${user.photo || ''}" alt="">
+            <div class="admin-member-info">
+                <div class="admin-member-name">${user.nickname || user.name?.split(' ')[0] || '?'}</div>
+                <div class="admin-member-email">${user.email || ''}</div>
+                <div class="admin-member-karma">${user.karma || 0} ⚡</div>
+            </div>
+            <div class="admin-member-actions">
+                <button class="admin-action-btn" data-action="rename" data-uid="${uid}">✏️ Přezdívka</button>
+                <div class="admin-karma-controls">
+                    <input type="number" class="admin-karma-input" id="karma-input-${uid}" placeholder="±body">
+                    <input type="text" class="admin-karma-reason" id="karma-reason-${uid}" placeholder="Důvod...">
+                    <button class="admin-action-btn admin-karma-add" data-action="karma" data-uid="${uid}">⚡ Upravit</button>
+                </div>
+                ${deleteBtnHtml}
+            </div>`;
+        membersSection.appendChild(row);
+    });
+    body.appendChild(membersSection);
+
+    // ── History section ──
+    const histSection = document.createElement('div');
+    histSection.className = 'admin-section';
+    const histTitle = document.createElement('h3');
+    histTitle.className = 'admin-section-title';
+    histTitle.textContent = '📋 Historie změn bodů';
+    histSection.appendChild(histTitle);
+    const histList = document.createElement('div');
+    histList.className = 'admin-history';
+    histList.id = 'adminHistoryList';
+    histSection.appendChild(histList);
+    body.appendChild(histSection);
+
+    get(ref(db, 'karmaHistory')).then(snap => {
+        const list = document.getElementById('adminHistoryList');
+        if (!list) return;
+        const data = snap.val();
+        if (!data) { list.innerHTML = '<div class="admin-history-empty">Žádná historie</div>'; return; }
+        const entries = Object.values(data).sort((a, b) => b.at - a.at).slice(0, 50);
+        entries.forEach(entry => {
+            const d = new Date(entry.at);
+            const dateStr = `${d.getDate()}.${d.getMonth() + 1}. ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+            const deltaStr = entry.delta > 0 ? `+${entry.delta}` : `${entry.delta}`;
+            const deltaColor = entry.delta > 0 ? '#30d158' : '#ff453a';
+            const targetName = allUsers[entry.uid]?.nickname || allUsers[entry.uid]?.name?.split(' ')[0] || '?';
+            const item = document.createElement('div');
+            item.className = 'admin-history-item';
+            item.innerHTML = `
+                <span class="ah-date">${dateStr}</span>
+                <span class="ah-target">${targetName}</span>
+                <span class="ah-delta" style="color:${deltaColor}">${deltaStr} ⚡</span>
+                <span class="ah-reason">${entry.reason || '—'}</span>
+                <span class="ah-by">od ${entry.byName || '?'}</span>`;
+            list.appendChild(item);
+        });
+    });
+
+    // ── Action handlers ──
+    body.querySelectorAll('[data-action]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const action = btn.dataset.action;
+            const uid = btn.dataset.uid;
+            const user = allUsers[uid];
+
+            if (action === 'rename') {
+                const current = user?.nickname || '';
+                const newName = prompt(`Nová přezdívka pro ${current}:`, current);
+                if (newName && newName.trim() && newName.trim() !== current) {
+                    await update(ref(db, 'users/' + uid), { nickname: newName.trim() });
+                }
+            }
+
+            if (action === 'karma') {
+                const input = document.getElementById('karma-input-' + uid);
+                const reasonInput = document.getElementById('karma-reason-' + uid);
+                const delta = parseInt(input?.value);
+                if (isNaN(delta) || delta === 0) { input?.focus(); return; }
+                const reason = reasonInput?.value.trim() || 'Ruční úprava adminem';
+                await deltaKarma(uid, delta);
+                await push(ref(db, 'karmaHistory'), {
+                    uid, delta, reason,
+                    by: currentUser.uid,
+                    byName: currentNickname,
+                    at: Date.now()
+                });
+                if (input) input.value = '';
+                if (reasonInput) reasonInput.value = '';
+            }
+
+            if (action === 'delete') {
+                const name = user?.nickname || user?.name?.split(' ')[0] || uid;
+                if (!confirm(`Opravdu smazat člena ${name}? Tato akce nelze vrátit.`)) return;
+                await remove(ref(db, 'users/' + uid));
+            }
+        });
+    });
 }
 
 function updateAssignSelect() {
