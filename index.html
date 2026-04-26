@@ -20,65 +20,78 @@
     </div>
 
     <div class="app" id="mainApp" style="display: none;">
-        <div class="header">
-            <div class="header-top">
+
+        <!-- Horní lišta – celá šířka -->
+        <div class="topbar">
+            <div class="topbar-left">
                 <h1>Zvěřinova úkoly</h1>
-                <div class="header-actions">
-                    <button class="search-btn" id="searchBtn">🔍</button>
-                    <div class="user-info" id="userInfo"></div>
+            </div>
+            <div class="topbar-right">
+                <button class="search-btn" id="searchBtn">🔍</button>
+                <div class="user-info" id="userInfo"></div>
+            </div>
+        </div>
+
+        <div class="search-bar" id="searchBar" style="display: none;">
+            <input type="text" id="searchInput" placeholder="Hledat úkoly a deadliny...">
+            <button class="search-close-btn" id="searchClose">✕</button>
+        </div>
+
+        <!-- Dvousloupcové tělo -->
+        <div class="app-body">
+
+            <!-- Levý panel: Kalendář -->
+            <aside class="sidebar">
+                <div class="month-nav-area">
+                    <button class="month-btn" id="prevMonth">‹</button>
+                    <span id="currentDate"></span>
+                    <button class="month-btn" id="nextMonth">›</button>
+                    <button class="today-btn" id="todayBtn">Dnes</button>
                 </div>
-            </div>
-            <div class="search-bar" id="searchBar" style="display: none;">
-                <input type="text" id="searchInput" placeholder="Hledat úkoly a deadliny...">
-                <button class="search-close-btn" id="searchClose">✕</button>
-            </div>
-            <div class="month-nav-area">
-                <button class="month-btn" id="prevMonth">‹</button>
-                <span id="currentDate"></span>
-                <button class="month-btn" id="nextMonth">›</button>
-                <button class="today-btn" id="todayBtn">Dnes</button>
-            </div>
-        </div>
+                <div class="month-view">
+                    <div class="mv-weekdays">
+                        <span>Po</span><span>Út</span><span>St</span><span>Čt</span><span>Pá</span><span>So</span><span>Ne</span>
+                    </div>
+                    <div class="calendar" id="calendar"></div>
+                </div>
+            </aside>
 
-        <div class="tabs">
-            <button class="tab active" data-tab="todos">Úkoly</button>
-            <button class="tab" data-tab="deadlines">Deadlines</button>
-        </div>
+            <!-- Pravý panel: Úkoly -->
+            <main class="main-panel">
+                <div class="tabs">
+                    <button class="tab active" data-tab="todos">Úkoly</button>
+                    <button class="tab" data-tab="deadlines">Deadlines</button>
+                </div>
 
-        <div class="filter-bar" id="filterBar"></div>
+                <div class="filter-bar" id="filterBar"></div>
 
-        <div class="input-area">
-            <input type="text" id="todoInput" placeholder="Nový úkol...">
-            <input type="date" id="todoDate">
-            <select id="assignTo">
-                <option value="">👤 Komu?</option>
-            </select>
-            <select id="category">
-                <option value="">📁 Kategorie</option>
-                <option value="home">🏠 Domácnost</option>
-                <option value="work">💼 Práce</option>
-                <option value="shopping">🛒 Nákup</option>
-                <option value="personal">👤 Osobní</option>
-            </select>
-            <select id="priority">
-                <option value="medium">🟡 Střední</option>
-                <option value="high">🔴 Vysoká</option>
-                <option value="low">🟢 Nízká</option>
-            </select>
-            <button id="addBtn">+</button>
-        </div>
+                <div class="input-area">
+                    <input type="text" id="todoInput" placeholder="Nový úkol...">
+                    <input type="date" id="todoDate">
+                    <select id="assignTo">
+                        <option value="">👤 Komu?</option>
+                    </select>
+                    <select id="category">
+                        <option value="">📁 Kategorie</option>
+                        <option value="home">🏠 Domácnost</option>
+                        <option value="work">💼 Práce</option>
+                        <option value="shopping">🛒 Nákup</option>
+                        <option value="personal">👤 Osobní</option>
+                    </select>
+                    <select id="priority">
+                        <option value="medium">🟡 Střední</option>
+                        <option value="high">🔴 Vysoká</option>
+                        <option value="low">🟢 Nízká</option>
+                    </select>
+                    <button id="addBtn">+</button>
+                </div>
 
-        <div class="main-content" id="mainContent">
-            <ul id="todoList"></ul>
-            <ul id="deadlineList" style="display: none;"></ul>
-        </div>
-        <ul id="searchResults" style="display: none;"></ul>
-
-        <div class="month-view">
-            <div class="mv-weekdays">
-                <span>Po</span><span>Út</span><span>St</span><span>Čt</span><span>Pá</span><span>So</span><span>Ne</span>
-            </div>
-            <div class="calendar" id="calendar"></div>
+                <div class="main-content" id="mainContent">
+                    <ul id="todoList"></ul>
+                    <ul id="deadlineList" style="display: none;"></ul>
+                </div>
+                <ul id="searchResults" style="display: none;"></ul>
+            </main>
         </div>
     </div>
 

@@ -363,7 +363,7 @@ function showYearPicker() {
         picker.appendChild(btn);
     }
 
-    document.querySelector('.header').appendChild(picker);
+    document.querySelector('.sidebar').appendChild(picker);
 }
 
 function renderCalendar() {
