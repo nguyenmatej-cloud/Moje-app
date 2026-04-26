@@ -506,28 +506,45 @@ function renderAdminBody() {
     membersSection.appendChild(membersTitle);
 
     Object.entries(allUsers).forEach(([uid, user]) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'admin-member-wrap';
+
+        const deleteBtnHtml = uid !== currentUser.uid
+            ? `<button class="adm-btn adm-danger" data-action="delete" data-uid="${uid}" title="Smazat člena">🗑️</button>`
+            : '';
+
         const row = document.createElement('div');
         row.className = 'admin-member-row';
-        const deleteBtnHtml = uid !== currentUser.uid
-            ? `<button class="admin-action-btn admin-danger" data-action="delete" data-uid="${uid}">🗑️ Smazat</button>`
-            : '';
         row.innerHTML = `
             <img class="admin-member-photo" src="${user.photo || ''}" alt="">
             <div class="admin-member-info">
                 <div class="admin-member-name">${user.nickname || user.name?.split(' ')[0] || '?'}</div>
                 <div class="admin-member-email">${user.email || ''}</div>
-                <div class="admin-member-karma">${user.karma || 0} ⚡</div>
             </div>
-            <div class="admin-member-actions">
-                <button class="admin-action-btn" data-action="rename" data-uid="${uid}">✏️ Přezdívka</button>
-                <div class="admin-karma-controls">
-                    <input type="number" class="admin-karma-input" id="karma-input-${uid}" placeholder="±body">
-                    <input type="text" class="admin-karma-reason" id="karma-reason-${uid}" placeholder="Důvod...">
-                    <button class="admin-action-btn admin-karma-add" data-action="karma" data-uid="${uid}">⚡ Upravit</button>
-                </div>
+            <div class="admin-karma-badge">
+                <span class="akb-value">${user.karma || 0}</span>
+                <span class="akb-icon">⚡</span>
+            </div>
+            <div class="adm-actions">
+                <button class="adm-btn adm-plus"   data-action="karma-plus"  data-uid="${uid}" title="Přidat body">+</button>
+                <button class="adm-btn adm-minus"  data-action="karma-minus" data-uid="${uid}" title="Odebrat body">−</button>
+                <button class="adm-btn adm-rename" data-action="rename"      data-uid="${uid}" title="Změnit přezdívku">✏️</button>
                 ${deleteBtnHtml}
             </div>`;
-        membersSection.appendChild(row);
+
+        const form = document.createElement('div');
+        form.className = 'admin-karma-form';
+        form.id = 'karma-form-' + uid;
+        form.innerHTML = `
+            <span class="akf-label" id="akf-label-${uid}">Přidat body</span>
+            <input type="number" class="akf-input"  id="akf-amount-${uid}" placeholder="Počet" min="1">
+            <input type="text"   class="akf-reason" id="akf-reason-${uid}" placeholder="Důvod (nepovinné)">
+            <button class="adm-btn adm-confirm" id="akf-confirm-${uid}">✓ Potvrdit</button>
+            <button class="adm-btn adm-cancel"  id="akf-cancel-${uid}">✕</button>`;
+
+        wrap.appendChild(row);
+        wrap.appendChild(form);
+        membersSection.appendChild(wrap);
     });
     body.appendChild(membersSection);
 
@@ -568,12 +585,34 @@ function renderAdminBody() {
         });
     });
 
-    // ── Action handlers ──
+    // ── Sign tracking (+/-) per uid ──
+    const karmaSign = {};
+
+    // ── Main action handlers ──
     body.querySelectorAll('[data-action]').forEach(btn => {
         btn.addEventListener('click', async () => {
             const action = btn.dataset.action;
             const uid = btn.dataset.uid;
             const user = allUsers[uid];
+
+            if (action === 'karma-plus' || action === 'karma-minus') {
+                const sign = action === 'karma-plus' ? 1 : -1;
+                karmaSign[uid] = sign;
+
+                body.querySelectorAll('.admin-karma-form.open').forEach(f => {
+                    if (f.id !== 'karma-form-' + uid) f.classList.remove('open');
+                });
+
+                const form = document.getElementById('karma-form-' + uid);
+                if (form.classList.contains('open')) { form.classList.remove('open'); return; }
+
+                const label = document.getElementById('akf-label-' + uid);
+                label.textContent = sign > 0 ? '⚡ Přidat body' : '⚡ Odebrat body';
+                label.style.color = sign > 0 ? '#30d158' : '#ff453a';
+                document.getElementById('akf-amount-' + uid).value = '';
+                form.classList.add('open');
+                document.getElementById('akf-amount-' + uid).focus();
+            }
 
             if (action === 'rename') {
                 const current = user?.nickname || '';
@@ -583,29 +622,42 @@ function renderAdminBody() {
                 }
             }
 
-            if (action === 'karma') {
-                const input = document.getElementById('karma-input-' + uid);
-                const reasonInput = document.getElementById('karma-reason-' + uid);
-                const delta = parseInt(input?.value);
-                if (isNaN(delta) || delta === 0) { input?.focus(); return; }
-                const reason = reasonInput?.value.trim() || 'Ruční úprava adminem';
-                await deltaKarma(uid, delta);
-                await push(ref(db, 'karmaHistory'), {
-                    uid, delta, reason,
-                    by: currentUser.uid,
-                    byName: currentNickname,
-                    at: Date.now()
-                });
-                if (input) input.value = '';
-                if (reasonInput) reasonInput.value = '';
-            }
-
             if (action === 'delete') {
                 const name = user?.nickname || user?.name?.split(' ')[0] || uid;
-                if (!confirm(`Opravdu smazat člena ${name}? Tato akce nelze vrátit.`)) return;
+                if (!confirm(`Opravdu chcete smazat člena ${name}?\n\nTato akce nelze vrátit.`)) return;
                 await remove(ref(db, 'users/' + uid));
             }
         });
+    });
+
+    // ── Karma form confirm / cancel ──
+    Object.keys(allUsers).forEach(uid => {
+        const confirmBtn = document.getElementById('akf-confirm-' + uid);
+        const cancelBtn  = document.getElementById('akf-cancel-'  + uid);
+        const form        = document.getElementById('karma-form-'  + uid);
+        const amountInput = document.getElementById('akf-amount-'  + uid);
+        const reasonInput = document.getElementById('akf-reason-'  + uid);
+        if (!confirmBtn) return;
+
+        const doConfirm = async () => {
+            const amount = parseInt(amountInput.value);
+            if (isNaN(amount) || amount <= 0) { amountInput.focus(); return; }
+            const sign = karmaSign[uid] ?? 1;
+            const delta = sign * amount;
+            const reason = reasonInput.value.trim() || (sign > 0 ? 'Přidání bodů adminem' : 'Odebrání bodů adminem');
+            await deltaKarma(uid, delta);
+            await push(ref(db, 'karmaHistory'), {
+                uid, delta, reason,
+                by: currentUser.uid,
+                byName: currentNickname,
+                at: Date.now()
+            });
+            form.classList.remove('open');
+        };
+
+        confirmBtn.addEventListener('click', doConfirm);
+        cancelBtn.addEventListener('click', () => form.classList.remove('open'));
+        amountInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') doConfirm(); });
     });
 }
 
