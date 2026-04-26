@@ -566,8 +566,8 @@ body {
 .calendar.slide-right { animation: slideInRight 0.28s ease; }
 
 .cal-cell {
-    min-height: 72px;
-    padding: 5px 4px 4px;
+    min-height: 96px;
+    padding: 6px 5px 5px;
     background: #1c1c1e;
     border: 1px solid #222;
     border-radius: 8px;
@@ -582,16 +582,17 @@ body {
 .cal-cell.active { background: rgba(10,132,255,0.12); border-color: #0a84ff; }
 
 .cal-day-num {
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 13px;
+    font-weight: 700;
     color: #ebebf5;
-    width: 20px;
-    height: 20px;
+    width: 23px;
+    height: 23px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    margin-bottom: 3px;
+    margin-bottom: 4px;
+    flex-shrink: 0;
 }
 
 .cal-cell.today .cal-day-num {
@@ -605,10 +606,10 @@ body {
 }
 
 .cal-task-chip {
-    font-size: 9.5px;
-    line-height: 1.35;
-    padding: 1px 4px;
-    border-radius: 3px;
+    font-size: 11px;
+    line-height: 1.4;
+    padding: 2px 6px;
+    border-radius: 4px;
     margin-bottom: 2px;
     white-space: nowrap;
     overflow: hidden;
@@ -623,10 +624,49 @@ body {
 }
 
 .cal-more {
-    font-size: 9px;
+    font-size: 10px;
     color: #636366;
-    padding-left: 4px;
+    padding-left: 5px;
     margin-top: 1px;
+}
+
+/* ── Day detail banner ──────────────────────────────── */
+.day-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: rgba(10,132,255,0.1);
+    border: 1px solid #0a84ff;
+    border-radius: 12px;
+    padding: 9px 14px;
+    margin-bottom: 14px;
+    animation: fadeIn 0.2s ease;
+}
+
+.day-banner-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.day-banner-close {
+    background: transparent;
+    border: 1px solid #3a3a3c;
+    border-radius: 8px;
+    color: #8e8e93;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 10px;
+    white-space: nowrap;
+    transition: all 0.15s;
+    flex-shrink: 0;
+}
+
+.day-banner-close:hover {
+    border-color: #ff453a;
+    color: #ff453a;
 }
 
 /* ── Year picker ────────────────────────────────────── */
@@ -739,105 +779,121 @@ body {
 ══════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
 
-    /* Celostránkový scroll na mobilu */
-    body { overflow: auto; height: auto; }
+    /* Pevná výška viewportu – žádný scroll stránky */
+    body { overflow: hidden; height: 100%; }
 
     .app {
-        height: auto;
-        overflow: visible;
-        min-height: 100vh;
+        height: 100vh;
+        overflow: hidden;
     }
 
     /* Topbar */
-    .topbar { padding: 12px 16px; }
-    .topbar-left h1 { font-size: 24px; }
+    .topbar { padding: 10px 14px; }
+    .topbar-left h1 { font-size: 22px; }
 
     /* Search */
-    .search-bar { padding: 10px 16px; }
+    .search-bar { padding: 8px 14px; }
 
-    /* Jednosloupec */
+    /* Jednosloupec, oba panely jako flex děti */
     .app-body {
+        flex: 1;
+        min-height: 0;
         display: flex;
         flex-direction: column;
-        overflow: visible;
+        overflow: hidden;
     }
 
-    /* Sidebar (kalendář) jde na vrch */
+    /* Sidebar – omezená výška, vnitřní scroll */
     .sidebar {
-        overflow-y: visible;
+        flex-shrink: 0;
+        max-height: 46vh;
+        overflow-y: auto;
+        overflow-x: hidden;
         border-right: none;
         border-bottom: 1px solid #1c1c1e;
-        padding: 14px 12px;
+        padding: 10px 12px;
     }
 
-    .main-panel {
-        overflow-y: visible;
-        padding: 16px 14px;
-    }
+    /* Navigace */
+    .month-btn { width: 44px; height: 44px; font-size: 22px; }
+    .today-btn { padding: 9px 18px; font-size: 14px; min-height: 44px; }
+    #currentDate { font-size: 15px; }
 
-    /* Větší navigační tlačítka pro dotyk */
-    .month-btn {
-        width: 44px;
-        height: 44px;
-        font-size: 22px;
-    }
-
-    .today-btn {
-        padding: 10px 20px;
-        font-size: 15px;
-        min-height: 44px;
-    }
-
-    #currentDate { font-size: 16px; }
-
-    /* Větší dny v kalendáři */
-    .cal-cell { min-height: 68px; padding: 4px 3px; }
-    .cal-day-num { font-size: 12px; width: 21px; height: 21px; }
+    /* Kompaktnější buňky na mobilu */
+    .cal-cell { min-height: 50px; padding: 4px 3px; }
+    .cal-day-num { font-size: 11px; width: 19px; height: 19px; }
     .cal-task-chip { font-size: 9px; padding: 1px 3px; }
+    .cal-more { font-size: 8px; }
 
-    /* Tabs na plnou šířku */
-    .tabs { max-width: none; }
-
-    /* Větší filtr tlačítka */
-    .filter-btn {
-        padding: 9px 14px;
-        font-size: 14px;
-        min-height: 40px;
+    /* Pravý panel jako flex sloupec – input pinnut dole */
+    .main-panel {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+        overflow: hidden;
     }
 
-    /* Větší input plocha */
-    #todoInput { font-size: 16px; padding: 14px 16px; }
+    .tabs {
+        flex-shrink: 0;
+        max-width: none;
+        margin-bottom: 0;
+        padding: 10px 12px 0;
+    }
 
+    .filter-bar {
+        flex-shrink: 0;
+        margin-bottom: 0;
+        padding: 8px 12px 0;
+    }
+
+    .day-banner {
+        flex-shrink: 0;
+        margin: 6px 12px 0;
+    }
+
+    /* Scrollovatelný seznam uprostřed */
+    .main-content {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 8px 12px;
+        margin-bottom: 0;
+    }
+
+    #searchResults {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 8px 12px;
+        margin: 0;
+    }
+
+    /* Input přesunut na dno */
+    .input-area {
+        order: 999;
+        flex-shrink: 0;
+        padding: 8px 10px;
+        margin-bottom: 0;
+        border-top: 1px solid #1c1c1e;
+        background: #111111;
+    }
+
+    /* Touch targets */
+    .filter-btn { padding: 9px 12px; font-size: 13px; min-height: 40px; }
+    #todoInput { font-size: 16px; padding: 12px 14px; }
     #todoDate, #assignTo, #category, #priority {
-        padding: 14px 10px;
-        font-size: 14px;
-        min-height: 48px;
+        padding: 12px 8px;
+        font-size: 13px;
+        min-height: 46px;
     }
+    #addBtn { width: 50px; height: 50px; font-size: 26px; }
 
-    #addBtn {
-        width: 52px;
-        height: 52px;
-        font-size: 28px;
-    }
-
-    /* Větší položky v seznamu */
-    #todoList li, #deadlineList li {
-        padding: 15px 14px;
-        border-radius: 14px;
-        gap: 14px;
-    }
-
+    #todoList li, #deadlineList li { padding: 13px 12px; gap: 12px; }
     #todoList li input[type="checkbox"],
-    #deadlineList li input[type="checkbox"] {
-        width: 26px;
-        height: 26px;
-    }
+    #deadlineList li input[type="checkbox"] { width: 24px; height: 24px; }
+    #todoList li button, #deadlineList li button { font-size: 20px; padding: 6px 8px; }
 
-    #todoList li button, #deadlineList li button {
-        font-size: 20px;
-        padding: 6px 10px;
-    }
-
-    /* Year picker poloha */
     .year-picker { top: auto; left: 12px; }
 }

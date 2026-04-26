@@ -366,6 +366,33 @@ function showYearPicker() {
     document.querySelector('.sidebar').appendChild(picker);
 }
 
+function renderDayBanner() {
+    const existing = document.getElementById('dayBanner');
+    const show = activeTab === 'deadlines' && selectedDay !== null;
+
+    if (!show) { existing?.remove(); return; }
+
+    const dayNamesCz = ['neděle', 'pondělí', 'úterý', 'středa', 'čtvrtek', 'pátek', 'sobota'];
+    const date = new Date(selectedYear, selectedMonth, selectedDay);
+    const label = `${dayNamesCz[date.getDay()].charAt(0).toUpperCase() + dayNamesCz[date.getDay()].slice(1)}, ${selectedDay}. ${selectedMonth + 1}. ${selectedYear}`;
+
+    let banner = existing;
+    if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'dayBanner';
+        banner.className = 'day-banner';
+        document.getElementById('filterBar').after(banner);
+    }
+
+    banner.innerHTML = `<span class="day-banner-label">📅 ${label}</span><button class="day-banner-close" id="dayBannerClose">✕ Zobrazit vše</button>`;
+
+    document.getElementById('dayBannerClose').addEventListener('click', () => {
+        selectedDay = null; selectedMonth = null; selectedYear = null;
+        renderCalendar();
+        renderTodos();
+    });
+}
+
 function renderCalendar() {
     const calendar = document.getElementById('calendar');
     const currentDateEl = document.getElementById('currentDate');
@@ -557,6 +584,8 @@ function renderTodos() {
             deadlines.forEach(todo => deadlineList.appendChild(createDeadlineItem(todo.key, todo)));
         }
     }
+
+    renderDayBanner();
 }
 
 function addTodo() {
