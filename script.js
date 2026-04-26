@@ -262,7 +262,7 @@ function initApp() {
             bar.style.display = 'none';
             document.getElementById('searchInput').value = '';
             searchQuery = '';
-            renderTodos();
+            showTab(activeTab);
         } else {
             bar.style.display = 'flex';
             document.getElementById('searchInput').focus();
@@ -273,7 +273,7 @@ function initApp() {
         document.getElementById('searchBar').style.display = 'none';
         document.getElementById('searchInput').value = '';
         searchQuery = '';
-        renderTodos();
+        showTab(activeTab);
     });
 
     document.getElementById('searchInput').addEventListener('input', (e) => {
@@ -340,6 +340,7 @@ function showTab(tab) {
     const isDeadlines = tab === 'deadlines';
     const isTodos = tab === 'todos';
 
+    document.getElementById('searchResults').style.display = 'none';
     document.getElementById('mainContent').style.display = isStats ? 'none' : '';
     document.getElementById('statsPanel').style.display = isStats ? '' : 'none';
     document.getElementById('inputArea').style.display = isStats ? 'none' : '';
@@ -347,7 +348,8 @@ function showTab(tab) {
     document.getElementById('deadlineList').style.display = isDeadlines ? '' : 'none';
     document.getElementById('todoDate').style.display = isDeadlines ? '' : 'none';
 
-    if (isStats) renderStats();
+    if (searchQuery) renderSearch();
+    else if (isStats) renderStats();
     else renderTodos();
 }
 
@@ -835,33 +837,57 @@ function formatDate(dateStr) {
 
 function renderSearch() {
     const results = document.getElementById('searchResults');
-    const mainContent = document.getElementById('mainContent');
 
     if (!searchQuery) {
         results.style.display = 'none';
-        mainContent.style.display = '';
+        showTab(activeTab);
         return;
     }
 
-    mainContent.style.display = 'none';
+    // Hide everything else, show results
+    document.getElementById('mainContent').style.display = 'none';
+    document.getElementById('statsPanel').style.display = 'none';
+    document.getElementById('inputArea').style.display = 'none';
+    document.getElementById('dayBanner')?.remove();
     results.style.display = 'block';
     results.innerHTML = '';
 
     const q = searchQuery.toLowerCase();
-    let found = false;
+    const matchTodos = [];
+    const matchDeadlines = [];
 
-    Object.keys(allTodos).forEach(key => {
-        const todo = allTodos[key];
+    Object.entries(allTodos).forEach(([key, todo]) => {
         if (!todo.text.toLowerCase().includes(q)) return;
-        results.appendChild(todo.deadline ? createDeadlineItem(key, todo) : createTodoItem(key, todo));
-        found = true;
+        if (todo.deadline) matchDeadlines.push({ key, ...todo });
+        else matchTodos.push({ key, ...todo });
     });
 
-    if (!found) {
+    const total = matchTodos.length + matchDeadlines.length;
+
+    if (total === 0) {
         const empty = document.createElement('li');
         empty.className = 'empty-message';
-        empty.textContent = `Žádné výsledky pro „${searchQuery}"`;
+        empty.textContent = `Nic nenalezeno pro „${searchQuery}"`;
         results.appendChild(empty);
+        return;
+    }
+
+    if (matchTodos.length > 0) {
+        const hdr = document.createElement('li');
+        hdr.className = 'search-section-header';
+        hdr.innerHTML = `Úkoly <span class="search-count">${matchTodos.length}</span>`;
+        results.appendChild(hdr);
+        matchTodos.forEach(t => results.appendChild(createTodoItem(t.key, t)));
+    }
+
+    if (matchDeadlines.length > 0) {
+        const hdr = document.createElement('li');
+        hdr.className = 'search-section-header';
+        hdr.innerHTML = `Deadliny <span class="search-count">${matchDeadlines.length}</span>`;
+        results.appendChild(hdr);
+        matchDeadlines
+            .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
+            .forEach(t => results.appendChild(createDeadlineItem(t.key, t)));
     }
 }
 
