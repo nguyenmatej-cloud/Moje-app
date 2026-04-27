@@ -52,35 +52,30 @@ const priorityLabels = {
     low: { label: '🟢 Nízká', color: '#30d158' }
 };
 
-// ✅ OPRAVENO: getRedirectResult správně zpracovává výsledek
 getRedirectResult(auth).then(async (result) => {
     if (result && result.user) {
         console.log('Redirect login OK:', result.user.displayName);
     }
 }).catch((err) => {
     if (err.code && err.code !== 'auth/no-auth-event' && err.code !== 'auth/null-user') {
-        console.warn('getRedirectResult:', err.code);
+        console.warn('getRedirectResult:', err.code, err.message);
+        if (err.code === 'auth/unauthorized-domain') {
+            alert('Chyba: Tato doména není povolena pro Google přihlášení.');
+        }
     }
 });
 
-// ✅ OPRAVENO: detekce iOS a Safari
-function isMobileOrSafari() {
-    const ua = navigator.userAgent;
-    const isIOS = /iPhone|iPad|iPod/i.test(ua);
-    const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
-    const isChromeIOS = /CriOS/i.test(ua);
-    return isIOS || isSafari || isChromeIOS;
-}
+provider.setCustomParameters({ prompt: 'select_account' });
 
 document.getElementById('loginBtn').addEventListener('click', async () => {
     try {
-        if (isMobileOrSafari()) {
-            await signInWithRedirect(auth, provider);
-            return;
-        }
+        // Popup funguje spolehlivě i na iOS/Safari (iOS 14+) při přímém kliku
         await signInWithPopup(auth, provider);
     } catch (err) {
-        if (err.code === 'auth/popup-blocked' || err.code === 'auth/operation-not-supported-in-this-environment') {
+        if (err.code === 'auth/popup-blocked' ||
+            err.code === 'auth/operation-not-supported-in-this-environment' ||
+            err.code === 'auth/web-storage-unsupported') {
+            // Záložní redirect – pokud popup blokovaný
             try {
                 await signInWithRedirect(auth, provider);
             } catch (redirectErr) {
