@@ -15,7 +15,6 @@ body {
     overflow: hidden;
 }
 
-/* ── Login ─────────────────────────────────────────── */
 .login-screen {
     position: fixed;
     top: 0; left: 0;
@@ -73,7 +72,6 @@ body {
     background: #f0f0f0;
 }
 
-/* ── App shell – full screen ────────────────────────── */
 .app {
     background: #111111;
     width: 100%;
@@ -83,7 +81,6 @@ body {
     overflow: hidden;
 }
 
-/* ── Topbar ─────────────────────────────────────────── */
 .topbar {
     display: flex;
     justify-content: space-between;
@@ -108,7 +105,6 @@ body {
     gap: 10px;
 }
 
-/* ── Search bar ─────────────────────────────────────── */
 .search-bar {
     display: flex;
     align-items: center;
@@ -150,7 +146,6 @@ body {
 
 .search-close-btn:hover { color: #fff; background: #3a3a3c; }
 
-/* ── Two-column body ────────────────────────────────── */
 .app-body {
     display: grid;
     grid-template-columns: minmax(320px, 40%) 1fr;
@@ -159,7 +154,6 @@ body {
     overflow: hidden;
 }
 
-/* ── Left sidebar – Calendar ────────────────────────── */
 .sidebar {
     overflow-y: auto;
     border-right: 1px solid #1c1c1e;
@@ -170,7 +164,6 @@ body {
     scrollbar-color: #2c2c2e transparent;
 }
 
-/* ── Right panel – Tasks ────────────────────────────── */
 .main-panel {
     overflow-y: auto;
     padding: 24px 28px;
@@ -178,7 +171,6 @@ body {
     scrollbar-color: #2c2c2e transparent;
 }
 
-/* ── User info ──────────────────────────────────────── */
 .user-info {
     display: flex;
     align-items: center;
@@ -217,7 +209,6 @@ body {
     background: rgba(255,69,58,0.1);
 }
 
-/* ── Month navigation ───────────────────────────────── */
 .month-nav-area {
     display: flex;
     align-items: center;
@@ -265,7 +256,6 @@ body {
     min-width: 110px;
 }
 
-/* ── Tabs ───────────────────────────────────────────── */
 .tabs {
     display: flex;
     gap: 8px;
@@ -297,7 +287,6 @@ body {
     box-shadow: 0 2px 8px rgba(0,0,0,0.4);
 }
 
-/* ── Filter bar ─────────────────────────────────────── */
 .filter-bar {
     display: flex;
     gap: 7px;
@@ -332,7 +321,6 @@ body {
 .filter-btn:hover { border-color: #0a84ff; color: #fff; }
 .filter-btn.active { background: #0a84ff; border-color: #0a84ff; color: #fff; }
 
-/* ── Input area ─────────────────────────────────────── */
 .input-area {
     display: flex;
     gap: 8px;
@@ -394,10 +382,7 @@ body {
 #addBtn:hover { transform: scale(1.08); background: #0070d8; }
 #addBtn:active { transform: scale(0.92); }
 
-/* ── Task lists ─────────────────────────────────────── */
-.main-content {
-    margin-bottom: 16px;
-}
+.main-content { margin-bottom: 16px; }
 
 #todoList, #deadlineList {
     list-style: none;
@@ -465,15 +450,8 @@ body {
     display: inline-block;
 }
 
-.category-tag {
-    background: #2c2c2e;
-    color: #ebebf5;
-}
-
-.priority-tag {
-    background: transparent;
-    font-weight: 600;
-}
+.category-tag { background: #2c2c2e; color: #ebebf5; }
+.priority-tag { background: transparent; font-weight: 600; }
 
 .assigned-to {
     font-size: 12px;
@@ -485,12 +463,7 @@ body {
     flex-wrap: wrap;
 }
 
-.assigned-to img {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-}
-
+.assigned-to img { width: 16px; height: 16px; border-radius: 50%; }
 .assigned-to strong { color: #ebebf5; }
 
 #todoList li input[type="checkbox"],
@@ -558,10 +531,7 @@ body {
     animation: fadeIn 0.3s ease;
 }
 
-/* ── Monthly calendar grid ──────────────────────────── */
-.month-view {
-    padding-top: 4px;
-}
+.month-view { padding-top: 4px; }
 
 .mv-weekdays {
     display: grid;
@@ -640,15 +610,8 @@ body {
     flex-shrink: 0;
 }
 
-.cal-cell.today .cal-day-num {
-    background: #ff453a;
-    color: #fff;
-}
-
-.cal-cell.active .cal-day-num {
-    background: #0a84ff;
-    color: #fff;
-}
+.cal-cell.today .cal-day-num { background: #ff453a; color: #fff; }
+.cal-cell.active .cal-day-num { background: #0a84ff; color: #fff; }
 
 .cal-task-chip {
     font-size: 11px;
@@ -664,14 +627,8 @@ body {
     transition: filter 0.2s ease, opacity 0.2s ease;
 }
 
-.cal-task-chip:hover {
-    filter: brightness(1.3) saturate(1.2);
-}
-
-.cal-task-chip.done {
-    opacity: 0.4;
-    text-decoration: line-through;
-}
+.cal-task-chip:hover { filter: brightness(1.3) saturate(1.2); }
+.cal-task-chip.done { opacity: 0.4; text-decoration: line-through; }
 
 .cal-more {
     font-size: 10px;
@@ -680,7 +637,6 @@ body {
     margin-top: 1px;
 }
 
-/* ── Day detail banner ──────────────────────────────── */
 .day-banner {
     display: flex;
     align-items: center;
@@ -714,12 +670,8 @@ body {
     flex-shrink: 0;
 }
 
-.day-banner-close:hover {
-    border-color: #ff453a;
-    color: #ff453a;
-}
+.day-banner-close:hover { border-color: #ff453a; color: #ff453a; }
 
-/* ── Year picker ────────────────────────────────────── */
 .year-picker {
     position: absolute;
     background: #2c2c2e;
@@ -750,7 +702,6 @@ body {
 .year-option:hover  { background: #3a3a3c; }
 .year-option.active { background: #0a84ff; }
 
-/* ── Month/year label ───────────────────────────────── */
 .month-btn-label {
     color: #fff;
     font-weight: 700;
@@ -766,7 +717,6 @@ body {
 
 .year-btn:hover { color: #30d158; }
 
-/* ── Search & Header actions ────────────────────────── */
 .search-btn {
     background: transparent;
     border: none;
@@ -781,7 +731,6 @@ body {
 
 .search-btn:hover { color: #fff; background: #2c2c2e; }
 
-/* ── Misc ───────────────────────────────────────────── */
 .confetti-piece {
     position: fixed;
     width: 8px;
@@ -792,176 +741,6 @@ body {
     z-index: 999;
 }
 
-/* ── Animations ─────────────────────────────────────── */
-@keyframes bounceIn {
-    0%   { opacity: 0; transform: scale(0.8) translateY(-10px); }
-    60%  { transform: scale(1.05) translateY(2px); }
-    100% { opacity: 1; transform: scale(1) translateY(0); }
-}
-
-@keyframes slideOut {
-    0%   { opacity: 1; transform: translateX(0); max-height: 100px; margin-bottom: 8px; }
-    100% { opacity: 0; transform: translateX(60px); max-height: 0; margin-bottom: 0; padding: 0; }
-}
-
-@keyframes fadeIn {
-    0%   { opacity: 0; transform: translateY(8px); }
-    100% { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slideInLeft {
-    0%   { opacity: 0; transform: translateX(-24px); }
-    100% { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes slideInRight {
-    0%   { opacity: 0; transform: translateX(24px); }
-    100% { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes confettiFall {
-    0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
-    100% { transform: translateY(-60px) rotate(720deg); opacity: 0; }
-}
-
-@keyframes cellActivate {
-    0%   { transform: scale(1); }
-    40%  { transform: scale(0.96); }
-    100% { transform: scale(1); }
-}
-
-/* ══════════════════════════════════════════════════════
-   MOBILNÍ LAYOUT  (max-width: 768px)
-══════════════════════════════════════════════════════ */
-@media (max-width: 768px) {
-
-    /* Pevná výška viewportu – žádný scroll stránky */
-    body { overflow: hidden; height: 100%; }
-
-    .app {
-        height: 100vh;
-        overflow: hidden;
-    }
-
-    /* Topbar */
-    .topbar { padding: 10px 14px; }
-    .topbar-left h1 { font-size: 22px; }
-
-    /* Search */
-    .search-bar { padding: 8px 14px; }
-
-    /* Jednosloupec, oba panely jako flex děti */
-    .app-body {
-        flex: 1;
-        min-height: 0;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-    }
-
-    /* Sidebar – omezená výška, vnitřní scroll */
-    .sidebar {
-        flex-shrink: 0;
-        max-height: 46vh;
-        overflow-y: auto;
-        overflow-x: hidden;
-        border-right: none;
-        border-bottom: 1px solid #1c1c1e;
-        padding: 10px 12px;
-    }
-
-    /* Navigace */
-    .month-btn { width: 44px; height: 44px; font-size: 22px; }
-    .today-btn { padding: 9px 18px; font-size: 14px; min-height: 44px; }
-    #currentDate { font-size: 15px; }
-
-    /* Kompaktnější buňky na mobilu */
-    .cal-cell { min-height: 50px; padding: 4px 3px; }
-    .cal-day-num { font-size: 11px; width: 19px; height: 19px; }
-    .cal-task-chip { font-size: 9px; padding: 1px 3px; }
-    .cal-more { font-size: 8px; }
-
-    /* Pravý panel jako flex sloupec – input pinnut dole */
-    .main-panel {
-        flex: 1;
-        min-height: 0;
-        display: flex;
-        flex-direction: column;
-        padding: 0;
-        overflow: hidden;
-    }
-
-    .tabs {
-        flex-shrink: 0;
-        max-width: none;
-        margin-bottom: 0;
-        padding: 10px 12px 0;
-    }
-
-    .filter-bar {
-        flex-shrink: 0;
-        margin-bottom: 0;
-        padding: 8px 12px 0;
-    }
-
-    .day-banner {
-        flex-shrink: 0;
-        margin: 6px 12px 0;
-    }
-
-    /* Scrollovatelný seznam uprostřed */
-    .main-content {
-        flex: 1;
-        min-height: 0;
-        overflow-y: auto;
-        padding: 8px 12px;
-        margin-bottom: 0;
-    }
-
-    #searchResults {
-        flex: 1;
-        min-height: 0;
-        overflow-y: auto;
-        padding: 8px 12px;
-        margin: 0;
-    }
-
-    /* Input přesunut na dno */
-    .input-area {
-        order: 999;
-        flex-shrink: 0;
-        padding: 8px 10px;
-        margin-bottom: 0;
-        border-top: 1px solid #1c1c1e;
-        background: #111111;
-    }
-
-    /* Touch targets */
-    .filter-btn { padding: 9px 12px; font-size: 13px; min-height: 40px; }
-    #todoInput { font-size: 16px; padding: 12px 14px; }
-    #todoDate, #assignTo, #category, #priority {
-        padding: 12px 8px;
-        font-size: 13px;
-        min-height: 46px;
-    }
-    #addBtn { width: 50px; height: 50px; font-size: 26px; }
-
-    #todoList li, #deadlineList li { padding: 13px 12px; gap: 12px; }
-    #todoList li input[type="checkbox"],
-    #deadlineList li input[type="checkbox"] { width: 24px; height: 24px; }
-    #todoList li button, #deadlineList li button { font-size: 20px; padding: 6px 8px; }
-
-    .year-picker { top: auto; left: 12px; }
-
-    /* Stats panel na mobilu */
-    #statsPanel { padding: 8px 12px; overflow-y: auto; flex: 1; min-height: 0; }
-    .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .stat-card { padding: 14px 10px; }
-    .stat-value { font-size: 26px; }
-    .stats-section { padding: 14px; }
-}
-
-/* ── Filter karma badge ─────────────────────────────── */
 .filter-karma {
     font-size: 11px;
     font-weight: 700;
@@ -969,10 +748,7 @@ body {
     margin-left: 2px;
 }
 
-/* ── Stats panel ─────────────────────────────────────── */
-#statsPanel {
-    padding: 4px 0;
-}
+#statsPanel { padding: 4px 0; }
 
 .stats-grid {
     display: grid;
@@ -1004,10 +780,7 @@ body {
     margin-bottom: 4px;
 }
 
-.stat-sub {
-    font-size: 11px;
-    color: #636366;
-}
+.stat-sub { font-size: 11px; color: #636366; }
 
 .stats-section {
     background: #1c1c1e;
@@ -1071,33 +844,11 @@ body {
     border: 1px solid #0a84ff40;
 }
 
-.lb-rank {
-    font-size: 18px;
-    min-width: 28px;
-    text-align: center;
-}
+.lb-rank { font-size: 18px; min-width: 28px; text-align: center; }
+.lb-avatar { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; }
+.lb-name { flex: 1; font-size: 14px; font-weight: 600; color: #fff; }
+.lb-karma { font-size: 14px; font-weight: 700; color: #ffd60a; }
 
-.lb-avatar {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    flex-shrink: 0;
-}
-
-.lb-name {
-    flex: 1;
-    font-size: 14px;
-    font-weight: 600;
-    color: #fff;
-}
-
-.lb-karma {
-    font-size: 14px;
-    font-weight: 700;
-    color: #ffd60a;
-}
-
-/* ── Admin panel ─────────────────────────────────────── */
 .admin-btn { color: #ffd60a !important; }
 .admin-btn:hover { color: #fff !important; background: rgba(255,214,10,0.12) !important; }
 
@@ -1110,7 +861,7 @@ body {
     justify-content: center;
     align-items: flex-start;
     z-index: 3000;
-    padding: 32px 16px 32px;
+    padding: 32px 16px;
     overflow-y: auto;
 }
 
@@ -1133,11 +884,7 @@ body {
     border-bottom: 1px solid #2c2c2e;
 }
 
-.admin-header h2 {
-    font-size: 20px;
-    font-weight: 700;
-    color: #fff;
-}
+.admin-header h2 { font-size: 20px; font-weight: 700; color: #fff; }
 
 .admin-close {
     background: #2c2c2e;
@@ -1164,11 +911,7 @@ body {
     gap: 24px;
 }
 
-.admin-section {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
+.admin-section { display: flex; flex-direction: column; gap: 10px; }
 
 .admin-section-title {
     font-size: 12px;
@@ -1179,10 +922,7 @@ body {
     margin-bottom: 2px;
 }
 
-.admin-member-wrap {
-    display: flex;
-    flex-direction: column;
-}
+.admin-member-wrap { display: flex; flex-direction: column; }
 
 .admin-member-row {
     background: #2c2c2e;
@@ -1199,23 +939,11 @@ body {
     border-radius: 14px 14px 0 0;
 }
 
-.admin-member-photo {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    flex-shrink: 0;
-}
+.admin-member-photo { width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0; }
 
-.admin-member-info {
-    flex: 1;
-    min-width: 0;
-}
+.admin-member-info { flex: 1; min-width: 0; }
 
-.admin-member-name {
-    font-size: 15px;
-    font-weight: 700;
-    color: #fff;
-}
+.admin-member-name { font-size: 15px; font-weight: 700; color: #fff; }
 
 .admin-member-email {
     font-size: 12px;
@@ -1238,21 +966,10 @@ body {
     justify-content: center;
 }
 
-.akb-value {
-    font-size: 20px;
-    font-weight: 700;
-    color: #ffd60a;
-    line-height: 1;
-}
-
+.akb-value { font-size: 20px; font-weight: 700; color: #ffd60a; line-height: 1; }
 .akb-icon { font-size: 14px; }
 
-.adm-actions {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-    flex-shrink: 0;
-}
+.adm-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
 
 .adm-btn {
     width: 36px;
@@ -1284,7 +1001,6 @@ body {
 .adm-cancel { color: #8e8e93; }
 .adm-cancel:hover { color: #fff; }
 
-/* ── Inline karma form ───────────────────────────────── */
 .admin-karma-form {
     display: none;
     background: #252527;
@@ -1337,7 +1053,6 @@ body {
 .akf-reason:focus { border-color: #0a84ff; }
 .akf-reason::placeholder { color: #48484a; }
 
-/* ── Admin karma history ──────────────────────────────── */
 .admin-history {
     display: flex;
     flex-direction: column;
@@ -1372,8 +1087,179 @@ body {
 .ah-reason { color: #ebebf5; flex: 2; min-width: 80px; }
 .ah-by { color: #636366; white-space: nowrap; flex-shrink: 0; }
 
-/* ── Admin mobile ──────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════
+   ANIMACE
+══════════════════════════════════════════════════════ */
+@keyframes bounceIn {
+    0%   { opacity: 0; transform: scale(0.8) translateY(-10px); }
+    60%  { transform: scale(1.05) translateY(2px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes slideOut {
+    0%   { opacity: 1; transform: translateX(0); max-height: 100px; margin-bottom: 8px; }
+    100% { opacity: 0; transform: translateX(60px); max-height: 0; margin-bottom: 0; padding: 0; }
+}
+
+@keyframes fadeIn {
+    0%   { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInLeft {
+    0%   { opacity: 0; transform: translateX(-24px); }
+    100% { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInRight {
+    0%   { opacity: 0; transform: translateX(24px); }
+    100% { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes confettiFall {
+    0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(-60px) rotate(720deg); opacity: 0; }
+}
+
+@keyframes cellActivate {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(0.96); }
+    100% { transform: scale(1); }
+}
+
+/* ══════════════════════════════════════════════════════
+   MOBILNÍ LAYOUT (max-width: 768px)
+══════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
+
+    body { overflow: hidden; height: 100%; }
+
+    .app {
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .topbar { padding: 10px 14px; }
+    .topbar-left h1 { font-size: 22px; }
+    .search-bar { padding: 8px 14px; }
+
+    .app-body {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    /* Kalendář nahoře – kompaktní */
+    .sidebar {
+        flex-shrink: 0;
+        height: auto;
+        max-height: 40vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        border-right: none;
+        border-bottom: 1px solid #1c1c1e;
+        padding: 8px 10px;
+    }
+
+    .month-nav-area { margin-bottom: 8px; }
+    .month-btn { width: 40px; height: 40px; font-size: 20px; }
+    .today-btn { padding: 8px 14px; font-size: 13px; }
+    #currentDate { font-size: 14px; }
+
+    /* Malé buňky */
+    .cal-cell { min-height: 44px; padding: 3px 2px; }
+    .cal-day-num { font-size: 10px; width: 18px; height: 18px; }
+    .cal-task-chip { font-size: 8px; padding: 1px 3px; }
+    .cal-more { font-size: 8px; }
+
+    /* Pravý panel – flex sloupec */
+    .main-panel {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .tabs {
+        flex-shrink: 0;
+        max-width: none;
+        margin: 0;
+        padding: 8px 12px 0;
+        border-radius: 0;
+    }
+
+    .filter-bar {
+        flex-shrink: 0;
+        margin: 0;
+        padding: 6px 12px 0;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .day-banner {
+        flex-shrink: 0;
+        margin: 6px 12px 0;
+    }
+
+    /* Scrollovatelný seznam úkolů */
+    .main-content {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 8px 12px;
+        margin-bottom: 0;
+    }
+
+    #searchResults {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 8px 12px;
+        margin: 0;
+    }
+
+    /* Input pinnutý dole */
+    .input-area {
+        order: 999;
+        flex-shrink: 0;
+        padding: 8px 10px;
+        margin-bottom: 0;
+        border-top: 1px solid #1c1c1e;
+        background: #111111;
+        flex-wrap: wrap;
+    }
+
+    .filter-btn { padding: 8px 10px; font-size: 12px; min-height: 38px; }
+    #todoInput { font-size: 16px; padding: 12px 14px; }
+    #todoDate, #assignTo, #category, #priority {
+        padding: 10px 8px;
+        font-size: 12px;
+        min-height: 44px;
+    }
+    #addBtn { width: 48px; height: 48px; font-size: 24px; }
+
+    #todoList li, #deadlineList li { padding: 12px 10px; gap: 10px; }
+    #todoList li input[type="checkbox"],
+    #deadlineList li input[type="checkbox"] { width: 22px; height: 22px; }
+    #todoList li button, #deadlineList li button { font-size: 20px; padding: 6px 8px; }
+
+    .year-picker { top: auto; left: 12px; }
+
+    #statsPanel { padding: 8px 12px; overflow-y: auto; flex: 1; min-height: 0; }
+    .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .stat-card { padding: 14px 10px; }
+    .stat-value { font-size: 26px; }
+    .stats-section { padding: 14px; }
+
     .admin-overlay { padding: 12px 8px; }
     .admin-header { padding: 16px 18px; }
     .admin-body { padding: 14px 12px; gap: 18px; }
