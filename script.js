@@ -429,4 +429,717 @@ function renderStats() {
     lbSection.appendChild(lbTitle);
 
     const lb = document.createElement('div');
-    lb.className =
+    lb.className = 'leaderboard';
+    const sorted = Object.entries(allUsers).sort((a, b) => (b[1].karma || 0) - (a[1].karma || 0));
+    sorted.forEach(([uid, user], i) => {
+        const row = document.createElement('div');
+        row.className = 'lb-row' + (uid === currentUser.uid ? ' lb-row-me' : '');
+        const rankEmoji = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
+        row.innerHTML = `<span class="lb-rank">${rankEmoji}</span><img class="lb-avatar" src="${user.photo || ''}" alt=""><span class="lb-name">${user.nickname || user.name?.split(' ')[0] || '?'}</span><span class="lb-karma">${user.karma || 0} ⚡</span>`;
+        lb.appendChild(row);
+    });
+    lbSection.appendChild(lb);
+    panel.appendChild(lbSection);
+}
+
+function requestNotificationPermission() {
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+}
+
+function checkDeadlineNotifications() {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+    const todayD = new Date();
+    todayD.setHours(0, 0, 0, 0);
+    const tomorrowD = new Date(todayD);
+    tomorrowD.setDate(tomorrowD.getDate() + 1);
+    const todayStr = todayD.toISOString().split('T')[0];
+    const tomorrowStr = tomorrowD.toISOString().split('T')[0];
+
+    const notified = JSON.parse(localStorage.getItem('notifiedDeadlines') || '{}');
+
+    Object.entries(allTodos).forEach(([key, todo]) => {
+        if (!todo.deadline || todo.done) return;
+        if (todo.deadline === todayStr) {
+            const k = key + '_today_' + todayStr;
+            if (!notified[k]) {
+                new Notification('⏰ Deadline dnes!', { body: todo.text });
+                notified[k] = true;
+            }
+        } else if (todo.deadline === tomorrowStr) {
+            const k = key + '_tmrw_' + todayStr;
+            if (!notified[k]) {
+                new Notification('📅 Deadline zítra', { body: todo.text });
+                notified[k] = true;
+            }
+        }
+    });
+
+    localStorage.setItem('notifiedDeadlines', JSON.stringify(notified));
+}
+
+function showAdminPanel() {
+    document.getElementById('adminPanelOverlay')?.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'adminPanelOverlay';
+    overlay.className = 'admin-overlay';
+    overlay.innerHTML = `
+        <div class="admin-panel">
+            <div class="admin-header">
+                <h2>⚙️ Správa členů</h2>
+                <button class="admin-close" id="adminClose">✕</button>
+            </div>
+            <div class="admin-body" id="adminBody"></div>
+        </div>`;
+    document.body.appendChild(overlay);
+    document.getElementById('adminClose').addEventListener('click', () => overlay.remove());
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    renderAdminBody();
+}
+
+function renderAdminBody() {
+    const body = document.getElementById('adminBody');
+    if (!body) return;
+    body.innerHTML = '';
+
+    const membersSection = document.createElement('div');
+    membersSection.className = 'admin-section';
+    const membersTitle = document.createElement('h3');
+    membersTitle.className = 'admin-section-title';
+    membersTitle.textContent = '👥 Členové';
+    membersSection.appendChild(membersTitle);
+
+    Object.entries(allUsers).forEach(([uid, user]) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'admin-member-wrap';
+
+        const deleteBtnHtml = uid !== currentUser.uid
+            ? `<button class="adm-btn adm-danger" data-action="delete" data-uid="${uid}" title="Smazat člena">🗑️</button>`
+            : '';
+
+        const row = document.createElement('div');
+        row.className = 'admin-member-row';
+        row.innerHTML = `
+            <img class="admin-member-photo" src="${user.photo || ''}" alt="">
+            <div class="admin-member-info">
+                <div class="admin-member-name">${user.nickname || user.name?.split(' ')[0] || '?'}</div>
+                <div class="admin-member-email">${user.email || ''}</div>
+            </div>
+            <div class="admin-karma-badge">
+                <span class="akb-value">${user.karma || 0}</span>
+                <span class="akb-icon">⚡</span>
+            </div>
+            <div class="adm-actions">
+                <button class="adm-btn adm-plus"   data-action="karma-plus"  data-uid="${uid}" title="Přidat body">+</button>
+                <button class="adm-btn adm-minus"  data-action="karma-minus" data-uid="${uid}" title="Odebrat body">−</button>
+                <button class="adm-btn adm-rename" data-action="rename"      data-uid="${uid}" title="Změnit přezdívku">✏️</button>
+                ${deleteBtnHtml}
+            </div>`;
+
+        const form = document.createElement('div');
+        form.className = 'admin-karma-form';
+        form.id = 'karma-form-' + uid;
+        form.innerHTML = `
+            <span class="akf-label" id="akf-label-${uid}">Přidat body</span>
+            <input type="number" class="akf-input"  id="akf-amount-${uid}" placeholder="Počet" min="1">
+            <input type="text"   class="akf-reason" id="akf-reason-${uid}" placeholder="Důvod (nepovinné)">
+            <button class="adm-btn adm-confirm" id="akf-confirm-${uid}">✓ Potvrdit</button>
+            <button class="adm-btn adm-cancel"  id="akf-cancel-${uid}">✕</button>`;
+
+        wrap.appendChild(row);
+        wrap.appendChild(form);
+        membersSection.appendChild(wrap);
+    });
+    body.appendChild(membersSection);
+
+    const histSection = document.createElement('div');
+    histSection.className = 'admin-section';
+    const histTitle = document.createElement('h3');
+    histTitle.className = 'admin-section-title';
+    histTitle.textContent = '📋 Historie změn bodů';
+    histSection.appendChild(histTitle);
+    const histList = document.createElement('div');
+    histList.className = 'admin-history';
+    histList.id = 'adminHistoryList';
+    histSection.appendChild(histList);
+    body.appendChild(histSection);
+
+    get(ref(db, 'karmaHistory')).then(snap => {
+        const list = document.getElementById('adminHistoryList');
+        if (!list) return;
+        const data = snap.val();
+        if (!data) { list.innerHTML = '<div class="admin-history-empty">Žádná historie</div>'; return; }
+        const entries = Object.values(data).sort((a, b) => b.at - a.at).slice(0, 50);
+        entries.forEach(entry => {
+            const d = new Date(entry.at);
+            const dateStr = `${d.getDate()}.${d.getMonth() + 1}. ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+            const deltaStr = entry.delta > 0 ? `+${entry.delta}` : `${entry.delta}`;
+            const deltaColor = entry.delta > 0 ? '#30d158' : '#ff453a';
+            const targetName = allUsers[entry.uid]?.nickname || allUsers[entry.uid]?.name?.split(' ')[0] || '?';
+            const item = document.createElement('div');
+            item.className = 'admin-history-item';
+            item.innerHTML = `
+                <span class="ah-date">${dateStr}</span>
+                <span class="ah-target">${targetName}</span>
+                <span class="ah-delta" style="color:${deltaColor}">${deltaStr} ⚡</span>
+                <span class="ah-reason">${entry.reason || '—'}</span>
+                <span class="ah-by">od ${entry.byName || '?'}</span>`;
+            list.appendChild(item);
+        });
+    });
+
+    const karmaSign = {};
+
+    body.querySelectorAll('[data-action]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const action = btn.dataset.action;
+            const uid = btn.dataset.uid;
+            const user = allUsers[uid];
+
+            if (action === 'karma-plus' || action === 'karma-minus') {
+                const sign = action === 'karma-plus' ? 1 : -1;
+                karmaSign[uid] = sign;
+
+                body.querySelectorAll('.admin-karma-form.open').forEach(f => {
+                    if (f.id !== 'karma-form-' + uid) f.classList.remove('open');
+                });
+
+                const form = document.getElementById('karma-form-' + uid);
+                if (form.classList.contains('open')) { form.classList.remove('open'); return; }
+
+                const label = document.getElementById('akf-label-' + uid);
+                label.textContent = sign > 0 ? '⚡ Přidat body' : '⚡ Odebrat body';
+                label.style.color = sign > 0 ? '#30d158' : '#ff453a';
+                document.getElementById('akf-amount-' + uid).value = '';
+                form.classList.add('open');
+                document.getElementById('akf-amount-' + uid).focus();
+            }
+
+            if (action === 'rename') {
+                const current = user?.nickname || '';
+                const newName = prompt(`Nová přezdívka pro ${current}:`, current);
+                if (newName && newName.trim() && newName.trim() !== current) {
+                    await update(ref(db, 'users/' + uid), { nickname: newName.trim() });
+                }
+            }
+
+            if (action === 'delete') {
+                const name = user?.nickname || user?.name?.split(' ')[0] || uid;
+                if (!confirm(`Opravdu chcete smazat člena ${name}?\n\nTato akce nelze vrátit.`)) return;
+                await remove(ref(db, 'users/' + uid));
+            }
+        });
+    });
+
+    Object.keys(allUsers).forEach(uid => {
+        const confirmBtn = document.getElementById('akf-confirm-' + uid);
+        const cancelBtn  = document.getElementById('akf-cancel-'  + uid);
+        const form        = document.getElementById('karma-form-'  + uid);
+        const amountInput = document.getElementById('akf-amount-'  + uid);
+        const reasonInput = document.getElementById('akf-reason-'  + uid);
+        if (!confirmBtn) return;
+
+        const doConfirm = async () => {
+            const amount = parseInt(amountInput.value);
+            if (isNaN(amount) || amount <= 0) { amountInput.focus(); return; }
+            const sign = karmaSign[uid] ?? 1;
+            const delta = sign * amount;
+            const reason = reasonInput.value.trim() || (sign > 0 ? 'Přidání bodů adminem' : 'Odebrání bodů adminem');
+            await deltaKarma(uid, delta);
+            await push(ref(db, 'karmaHistory'), {
+                uid, delta, reason,
+                by: currentUser.uid,
+                byName: currentNickname,
+                at: Date.now()
+            });
+            form.classList.remove('open');
+        };
+
+        confirmBtn.addEventListener('click', doConfirm);
+        cancelBtn.addEventListener('click', () => form.classList.remove('open'));
+        amountInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') doConfirm(); });
+    });
+}
+
+function updateAssignSelect() {
+    const select = document.getElementById('assignTo');
+    select.innerHTML = '<option value="">👤 Komu?</option>';
+    Object.entries(allUsers).forEach(([uid, user]) => {
+        const option = document.createElement('option');
+        option.value = uid;
+        option.textContent = user.nickname || user.name.split(' ')[0];
+        select.appendChild(option);
+    });
+}
+
+function showYearPicker() {
+    const existing = document.getElementById('yearPicker');
+    if (existing) { existing.remove(); return; }
+    document.getElementById('monthGrid')?.remove();
+
+    const picker = document.createElement('div');
+    picker.id = 'yearPicker';
+    picker.className = 'year-picker';
+
+    for (let y = 2024; y <= 2030; y++) {
+        const btn = document.createElement('button');
+        btn.className = 'year-option' + (y === currentYear ? ' active' : '');
+        btn.textContent = y;
+        btn.addEventListener('click', () => {
+            currentYear = y;
+            selectedDay = null; selectedMonth = null; selectedYear = null;
+            picker.remove();
+            renderCalendar(); renderTodos();
+        });
+        picker.appendChild(btn);
+    }
+
+    document.querySelector('.sidebar').appendChild(picker);
+}
+
+function renderDayBanner() {
+    const existing = document.getElementById('dayBanner');
+    const show = activeTab === 'deadlines' && selectedDay !== null;
+
+    if (!show) { existing?.remove(); return; }
+
+    const dayNamesCz = ['neděle', 'pondělí', 'úterý', 'středa', 'čtvrtek', 'pátek', 'sobota'];
+    const date = new Date(selectedYear, selectedMonth, selectedDay);
+    const label = `${dayNamesCz[date.getDay()].charAt(0).toUpperCase() + dayNamesCz[date.getDay()].slice(1)}, ${selectedDay}. ${selectedMonth + 1}. ${selectedYear}`;
+
+    let banner = existing;
+    if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'dayBanner';
+        banner.className = 'day-banner';
+        document.getElementById('filterBar').after(banner);
+    }
+
+    banner.innerHTML = `<span class="day-banner-label">📅 ${label}</span><button class="day-banner-close" id="dayBannerClose">✕ Zobrazit vše</button>`;
+
+    document.getElementById('dayBannerClose').addEventListener('click', () => {
+        selectedDay = null; selectedMonth = null; selectedYear = null;
+        renderCalendar();
+        renderTodos();
+    });
+}
+
+function renderCalendar() {
+    const calendar = document.getElementById('calendar');
+    const currentDateEl = document.getElementById('currentDate');
+    calendar.innerHTML = '';
+    document.getElementById('yearPicker')?.remove();
+
+    currentDateEl.innerHTML = `<span class="month-btn-label">${months[currentMonth]}</span> <span class="year-btn" id="yearBtn">${currentYear}</span>`;
+    document.getElementById('yearBtn').addEventListener('click', showYearPicker);
+
+    if (slideDirection === 'left') {
+        calendar.classList.remove('slide-left', 'slide-right');
+        calendar.offsetHeight;
+        calendar.classList.add('slide-left');
+    } else if (slideDirection === 'right') {
+        calendar.classList.remove('slide-left', 'slide-right');
+        calendar.offsetHeight;
+        calendar.classList.add('slide-right');
+    }
+    slideDirection = null;
+
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+    const offset = firstDay === 0 ? 6 : firstDay - 1;
+
+    const tasksByDay = {};
+    Object.entries(allTodos).forEach(([key, todo]) => {
+        if (!todo.deadline || !matchesFilter(todo)) return;
+        const d = new Date(todo.deadline + 'T00:00:00');
+        if (d.getMonth() !== currentMonth || d.getFullYear() !== currentYear) return;
+        const day = d.getDate();
+        if (!tasksByDay[day]) tasksByDay[day] = [];
+        tasksByDay[day].push({ key, ...todo });
+    });
+
+    for (let i = 0; i < offset; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'cal-cell empty';
+        calendar.appendChild(empty);
+    }
+
+    for (let i = 1; i <= daysInMonth; i++) {
+        const date = new Date(currentYear, currentMonth, i);
+        const cell = document.createElement('div');
+        cell.className = 'cal-cell';
+
+        if (date.toDateString() === today.toDateString()) cell.classList.add('today');
+        if (i === selectedDay && currentMonth === selectedMonth && currentYear === selectedYear) cell.classList.add('active');
+
+        const numEl = document.createElement('div');
+        numEl.className = 'cal-day-num';
+        numEl.textContent = i;
+        cell.appendChild(numEl);
+
+        const tasks = tasksByDay[i] || [];
+        tasks.slice(0, 3).forEach(todo => {
+            const chip = document.createElement('div');
+            chip.className = 'cal-task-chip' + (todo.done ? ' done' : '');
+            const color = priorityLabels[todo.priority]?.color || '#0a84ff';
+            chip.style.background = color + '28';
+            chip.style.borderLeft = `2px solid ${color}`;
+            chip.textContent = todo.text;
+            cell.appendChild(chip);
+        });
+
+        if (tasks.length > 3) {
+            const more = document.createElement('div');
+            more.className = 'cal-more';
+            more.textContent = `+${tasks.length - 3}`;
+            cell.appendChild(more);
+        }
+
+        cell.addEventListener('click', () => {
+            selectedDay = i;
+            selectedMonth = currentMonth;
+            selectedYear = currentYear;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelector('[data-tab="deadlines"]').classList.add('active');
+            activeTab = 'deadlines';
+            document.getElementById('todoList').style.display = 'none';
+            document.getElementById('deadlineList').style.display = 'block';
+            document.getElementById('todoDate').style.display = 'block';
+            renderCalendar();
+            renderTodos();
+        });
+
+        calendar.appendChild(cell);
+    }
+}
+
+function spawnConfetti(x, y) {
+    const colors = ['#0a84ff', '#30d158', '#ff453a', '#ffd60a', '#bf5af2'];
+    for (let i = 0; i < 8; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'confetti-piece';
+        piece.style.left = (x + (Math.random() - 0.5) * 40) + 'px';
+        piece.style.top = y + 'px';
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDelay = (Math.random() * 0.2) + 's';
+        document.body.appendChild(piece);
+        setTimeout(() => piece.remove(), 1000);
+    }
+}
+
+function formatDate(dateStr) {
+    const date = new Date(dateStr + 'T00:00:00');
+    return date.getDate() + '. ' + (date.getMonth() + 1) + '. ' + date.getFullYear();
+}
+
+function renderSearch() {
+    const results = document.getElementById('searchResults');
+
+    if (!searchQuery) {
+        results.style.display = 'none';
+        showTab(activeTab);
+        return;
+    }
+
+    document.getElementById('mainContent').style.display = 'none';
+    document.getElementById('statsPanel').style.display = 'none';
+    document.getElementById('inputArea').style.display = 'none';
+    document.getElementById('dayBanner')?.remove();
+    results.style.display = 'block';
+    results.innerHTML = '';
+
+    const q = searchQuery.toLowerCase();
+    const matchTodos = [];
+    const matchDeadlines = [];
+
+    Object.entries(allTodos).forEach(([key, todo]) => {
+        if (!todo.text.toLowerCase().includes(q)) return;
+        if (todo.deadline) matchDeadlines.push({ key, ...todo });
+        else matchTodos.push({ key, ...todo });
+    });
+
+    const total = matchTodos.length + matchDeadlines.length;
+
+    if (total === 0) {
+        const empty = document.createElement('li');
+        empty.className = 'empty-message';
+        empty.textContent = `Nic nenalezeno pro „${searchQuery}"`;
+        results.appendChild(empty);
+        return;
+    }
+
+    if (matchTodos.length > 0) {
+        const hdr = document.createElement('li');
+        hdr.className = 'search-section-header';
+        hdr.innerHTML = `Úkoly <span class="search-count">${matchTodos.length}</span>`;
+        results.appendChild(hdr);
+        matchTodos.forEach(t => results.appendChild(createTodoItem(t.key, t)));
+    }
+
+    if (matchDeadlines.length > 0) {
+        const hdr = document.createElement('li');
+        hdr.className = 'search-section-header';
+        hdr.innerHTML = `Deadliny <span class="search-count">${matchDeadlines.length}</span>`;
+        results.appendChild(hdr);
+        matchDeadlines
+            .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
+            .forEach(t => results.appendChild(createDeadlineItem(t.key, t)));
+    }
+}
+
+function renderTodos() {
+    if (searchQuery) { renderSearch(); return; }
+
+    const list = document.getElementById('todoList');
+    const deadlineList = document.getElementById('deadlineList');
+    list.innerHTML = '';
+    deadlineList.innerHTML = '';
+
+    const deadlines = [];
+    const filterByDay = selectedDay !== null;
+    const selectedDateStr = filterByDay
+        ? `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`
+        : null;
+
+    if (activeTab === 'todos') {
+        let found = false;
+        Object.keys(allTodos).forEach(key => {
+            const todo = allTodos[key];
+            if (todo.deadline) return;
+            if (!matchesFilter(todo)) return;
+            list.appendChild(createTodoItem(key, todo));
+            found = true;
+        });
+        if (!found) {
+            const empty = document.createElement('li');
+            empty.className = 'empty-message';
+            empty.textContent = 'Žádné úkoly 😊';
+            list.appendChild(empty);
+        }
+    } else {
+        Object.keys(allTodos).forEach(key => {
+            const todo = allTodos[key];
+            if (!todo.deadline) return;
+            if (!matchesFilter(todo)) return;
+            if (filterByDay && todo.deadline !== selectedDateStr) return;
+            deadlines.push({ key, ...todo });
+        });
+
+        deadlines.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+
+        if (deadlines.length === 0) {
+            const empty = document.createElement('li');
+            empty.className = 'empty-message';
+            empty.textContent = filterByDay
+                ? `😊 Na ${selectedDay}. ${selectedMonth + 1}. ${selectedYear} nemáte žádné deadliny!`
+                : 'Žádné deadlines 😊';
+            deadlineList.appendChild(empty);
+        } else {
+            deadlines.forEach(todo => deadlineList.appendChild(createDeadlineItem(todo.key, todo)));
+        }
+    }
+
+    renderDayBanner();
+}
+
+function addTodo() {
+    const input = document.getElementById('todoInput');
+    const dateInput = document.getElementById('todoDate');
+    const assignTo = document.getElementById('assignTo');
+    const category = document.getElementById('category');
+    const priority = document.getElementById('priority');
+    const addBtn = document.getElementById('addBtn');
+
+    const text = input.value.trim();
+    if (text === '') return;
+
+    const date = dateInput.value;
+    if (activeTab === 'deadlines' && !date) {
+        alert('Prosím vyber datum pro deadline!');
+        return;
+    }
+
+    if (date) {
+        const rect = addBtn.getBoundingClientRect();
+        spawnConfetti(rect.left + rect.width / 2, rect.top);
+    }
+
+    const assignedUid = assignTo.value;
+    const assignedUser = assignedUid && allUsers[assignedUid] ? {
+        uid: assignedUid,
+        name: allUsers[assignedUid].nickname || allUsers[assignedUid].name,
+        photo: allUsers[assignedUid].photo
+    } : null;
+
+    push(todosRef, {
+        text: text,
+        done: false,
+        deadline: date || null,
+        category: category.value || null,
+        priority: priority.value || 'medium',
+        createdBy: {
+            uid: currentUser.uid,
+            name: currentNickname,
+            photo: currentUser.photoURL
+        },
+        assignedTo: assignedUser
+    });
+
+    input.value = '';
+    dateInput.value = '';
+    assignTo.value = '';
+    category.value = '';
+    priority.value = 'medium';
+}
+
+function createTodoItem(key, todo) {
+    const li = document.createElement('li');
+    if (todo.done) li.classList.add('done');
+
+    if (todo.priority && priorityLabels[todo.priority]) {
+        li.style.borderLeft = `4px solid ${priorityLabels[todo.priority].color}`;
+    }
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = todo.done;
+    checkbox.addEventListener('change', async () => {
+        const nowDone = checkbox.checked;
+        update(ref(db, 'todos/' + key), { done: nowDone });
+        const uid = todo.assignedTo?.uid || todo.createdBy?.uid;
+        await deltaKarma(uid, nowDone ? 5 : -5);
+    });
+
+    const content = document.createElement('div');
+    content.className = 'content';
+
+    const span = document.createElement('span');
+    span.textContent = todo.text;
+    content.appendChild(span);
+
+    const meta = document.createElement('div');
+    meta.className = 'todo-meta';
+    if (todo.category && categoryLabels[todo.category]) {
+        const cat = document.createElement('span');
+        cat.className = 'tag category-tag';
+        cat.textContent = categoryLabels[todo.category];
+        meta.appendChild(cat);
+    }
+    if (todo.priority && priorityLabels[todo.priority]) {
+        const pri = document.createElement('span');
+        pri.className = 'tag priority-tag';
+        pri.style.color = priorityLabels[todo.priority].color;
+        pri.textContent = priorityLabels[todo.priority].label;
+        meta.appendChild(pri);
+    }
+    if (meta.children.length > 0) content.appendChild(meta);
+
+    if (todo.assignedTo) {
+        const assigned = document.createElement('div');
+        assigned.className = 'assigned-to';
+        assigned.innerHTML = `<img src="${todo.assignedTo.photo}" alt=""> Pro: <strong>${todo.assignedTo.name}</strong> · Zadal: ${todo.createdBy?.name || '?'}`;
+        content.appendChild(assigned);
+    } else if (todo.createdBy) {
+        const created = document.createElement('div');
+        created.className = 'assigned-to';
+        created.innerHTML = `<img src="${todo.createdBy.photo}" alt=""> Zadal: <strong>${todo.createdBy.name}</strong>`;
+        content.appendChild(created);
+    }
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = '🗑️';
+    deleteBtn.addEventListener('click', () => {
+        li.classList.add('removing');
+        setTimeout(() => remove(ref(db, 'todos/' + key)), 280);
+    });
+
+    li.appendChild(checkbox);
+    li.appendChild(content);
+    li.appendChild(deleteBtn);
+    return li;
+}
+
+function createDeadlineItem(key, todo) {
+    const li = document.createElement('li');
+    if (todo.done) li.classList.add('done');
+
+    if (todo.priority && priorityLabels[todo.priority]) {
+        li.style.borderLeft = `4px solid ${priorityLabels[todo.priority].color}`;
+    }
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = todo.done;
+    checkbox.addEventListener('change', async () => {
+        const nowDone = checkbox.checked;
+        const uid = todo.assignedTo?.uid || todo.createdBy?.uid;
+        if (nowDone) {
+            const todayD = new Date();
+            todayD.setHours(0, 0, 0, 0);
+            const deadline = new Date(todo.deadline + 'T00:00:00');
+            const karma = todayD < deadline ? 15 : 10;
+            update(ref(db, 'todos/' + key), { done: true, karmaGiven: karma });
+            await deltaKarma(uid, karma);
+        } else {
+            const karmaGiven = todo.karmaGiven || 10;
+            update(ref(db, 'todos/' + key), { done: false, karmaGiven: null });
+            await deltaKarma(uid, -karmaGiven);
+        }
+    });
+
+    const content = document.createElement('div');
+    content.className = 'content';
+
+    const span = document.createElement('span');
+    span.textContent = todo.text;
+    content.appendChild(span);
+
+    const dateSpan = document.createElement('div');
+    dateSpan.className = 'deadline-date';
+    dateSpan.textContent = '📅 ' + formatDate(todo.deadline);
+    content.appendChild(dateSpan);
+
+    const meta = document.createElement('div');
+    meta.className = 'todo-meta';
+    if (todo.category && categoryLabels[todo.category]) {
+        const cat = document.createElement('span');
+        cat.className = 'tag category-tag';
+        cat.textContent = categoryLabels[todo.category];
+        meta.appendChild(cat);
+    }
+    if (todo.priority && priorityLabels[todo.priority]) {
+        const pri = document.createElement('span');
+        pri.className = 'tag priority-tag';
+        pri.style.color = priorityLabels[todo.priority].color;
+        pri.textContent = priorityLabels[todo.priority].label;
+        meta.appendChild(pri);
+    }
+    if (meta.children.length > 0) content.appendChild(meta);
+
+    if (todo.assignedTo) {
+        const assigned = document.createElement('div');
+        assigned.className = 'assigned-to';
+        assigned.innerHTML = `<img src="${todo.assignedTo.photo}" alt=""> Pro: <strong>${todo.assignedTo.name}</strong> · Zadal: ${todo.createdBy?.name || '?'}`;
+        content.appendChild(assigned);
+    } else if (todo.createdBy) {
+        const created = document.createElement('div');
+        created.className = 'assigned-to';
+        created.innerHTML = `<img src="${todo.createdBy.photo}" alt=""> Zadal: <strong>${todo.createdBy.name}</strong>`;
+        content.appendChild(created);
+    }
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = '🗑️';
+    deleteBtn.addEventListener('click', () => {
+        li.classList.add('removing');
+        setTimeout(() => remove(ref(db, 'todos/' + key)), 280);
+    });
+
+    li.appendChild(checkbox);
+    li.appendChild(content);
+    li.appendChild(deleteBtn);
+    return li;
+}
